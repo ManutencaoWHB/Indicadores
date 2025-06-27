@@ -988,7 +988,7 @@
                 }
             };
             
-            const apiKey = "AIzaSyDO47ckHgjPh1okBYn6cu605TEGNHxu29w";
+            const apiKey = "";
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             try {
@@ -1525,6 +1525,7 @@
             draggedItemData = null;
         });
 
+        // INÍCIO DA ALTERAÇÃO: Função do gráfico de KPI atualizada
         function generateKpiChart(kpiType, data, groupBy, rank = 'all', limit = null) {
             if (kpiChartInstance) {
                 kpiChartInstance.destroy();
@@ -1557,13 +1558,17 @@
                     break;
             }
         
+             // Aplica a ordenação padrão (pior para o melhor) ANTES de aplicar os filtros de Top N
+            if (higherIsBetter) {
+                sortedData.sort((a, b) => a[kpiType] - b[kpiType]); // Pior é o menor valor
+            } else {
+                sortedData.sort((a, b) => b[kpiType] - a[kpiType]); // Pior é o maior valor
+            }
+
             if (rank !== 'all' && limit) {
                 if (rank === 'best') {
-                    if (higherIsBetter) sortedData.sort((a, b) => b[kpiType] - a[kpiType]);
-                    else sortedData.sort((a, b) => a[kpiType] - b[kpiType]); 
-                } else { // 'worst'
-                     if (higherIsBetter) sortedData.sort((a, b) => a[kpiType] - b[kpiType]);
-                    else sortedData.sort((a, b) => b[kpiType] - a[kpiType]);
+                    // Inverte a ordenação para pegar os melhores
+                    sortedData.reverse(); 
                 }
                 sortedData = sortedData.slice(0, limit);
             }
@@ -1684,4 +1689,3 @@
     </script>
 </body>
 </html>
-
