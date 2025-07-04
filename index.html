@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analisador de Indicadores de Manutenção (KPIs)</title>
+    <title>Plataforma de Análise de Manutenção</title>
     
     <!-- Fonte Inter do Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,12 +15,43 @@
 
     <!-- 2. Configuração do Tailwind e Script do Dark Mode DEPOIS -->
     <script>
-        // Adiciona a configuração para o Tailwind usar a estratégia de classe para o dark mode.
         tailwind.config = {
           darkMode: 'class',
+          theme: {
+            extend: {
+                typography: (theme) => ({
+                    DEFAULT: {
+                        css: {
+                            'h4': {
+                                color: theme('colors.gray.800'),
+                                fontWeight: '600',
+                                marginBottom: theme('spacing.2'),
+                            },
+                             'ol > li::before': {
+                                color: theme('colors.gray.500'),
+                            },
+                            'ol > li': {
+                                marginTop: theme('spacing.2'),
+                                paddingTop: theme('spacing.2'),
+                            }
+                        },
+                    },
+                    invert: {
+                         css: {
+                            'h4': {
+                                color: theme('colors.gray.200'),
+                            },
+                             'ol > li::before': {
+                                color: theme('colors.gray.400'),
+                            },
+                        },
+                    }
+                })
+            }
+          }
         }
 
-        // Script para aplicar o tema na carga inicial e evitar o "flash" de tela branca.
+        // Script para aplicar o tema na carga inicial
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
           document.documentElement.classList.add('dark')
         } else {
@@ -31,7 +62,6 @@
     <!-- Adicionada biblioteca de gráficos Chart.js e plugin de rótulos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
-
 
     <!-- Incluindo a biblioteca SheetJS (xlsx) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -53,270 +83,331 @@
             outline-offset: -4px;
             background-color: rgba(79, 70, 229, 0.1);
         }
+        /* Estilos para o Chatbot */
+        .chat-message {
+            max-width: 80%;
+        }
+        .user-message {
+            align-self: flex-end;
+            background-color: #4f46e5;
+            color: white;
+        }
+        .bot-message {
+            align-self: flex-start;
+            background-color: #e5e7eb;
+        }
+        .dark .bot-message {
+             background-color: #374151;
+        }
+        .nav-active {
+            background-color: #eef2ff; /* bg-indigo-100 */
+        }
+        .dark .nav-active {
+            background-color: #3730a3; /* dark:bg-indigo-800 */
+        }
     </style>
 </head>
 <body class="antialiased bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
 
-    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
-        
-        <header class="text-center mb-8 relative">
-            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">Analisador de Indicadores de Manutenção</h1>
-            <p class="mt-2 text-lg text-gray-600 dark:text-gray-400">Calcule Disponibilidade, MTBF e MTTR a partir da sua planilha de paradas.</p>
-            
-            <div class="absolute top-0 right-0">
-                <button id="theme-toggle" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
-                    <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-                    <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
-                </button>
-            </div>
-        </header>
-
-        <!-- Seção de Upload -->
-        <div class="max-w-3xl mx-auto bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 mb-8">
-            <div class="flex flex-col items-center justify-center">
-                <label for="file-upload" class="file-input-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                    </svg>
-                    <span>Escolher Planilha de Paradas</span>
-                </label>
-                <input id="file-upload" type="file" accept=".xlsx, .xls, .csv">
-                <p id="file-name" class="mt-4 text-sm text-gray-500 dark:text-gray-400">Nenhum arquivo selecionado.</p>
-            </div>
+<div class="flex h-screen bg-gray-100 dark:bg-gray-900">
+    <!-- Sidebar -->
+    <div class="w-64 bg-white dark:bg-gray-800 shadow-md flex-shrink-0">
+        <div class="p-4 border-b dark:border-gray-700">
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white">Menu Principal</h2>
         </div>
-
-        <!-- Seção de Configuração e Análise -->
-        <div id="analysis-section" class="hidden mt-8 max-w-7xl mx-auto bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-            <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Configurações da Análise</h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-4">
-                <div>
-                    <label for="report-start-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Data Inicial do Relatório</label>
-                    <input type="date" id="report-start-date" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm">
-                </div>
-                <div>
-                    <label for="report-end-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Data Final do Relatório</label>
-                    <input type="date" id="report-end-date" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm">
-                </div>
-                <div>
-                    <label for="year-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Ano</label>
-                    <select id="year-select" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                </div>
-                <div>
-                    <label for="month-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Mês</label>
-                    <select id="month-select" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                </div>
-                <div class="lg:col-span-2">
-                    <label for="week-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Semana</label>
-                    <select id="week-select" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                </div>
-                <div class="lg:col-span-2">
-                    <label for="production-line-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Filtrar por Linha de Produção</label>
-                    <select id="production-line-filter" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                </div>
-                <div>
-                    <label for="total-hours" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Total de Horas no Período</label>
-                    <input type="number" id="total-hours" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-200 rounded-md shadow-sm" readonly placeholder="Calculado automaticamente">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-transparent">&nbsp;</label>
-                    <button id="clear-filters-button" class="mt-1 w-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-100 font-bold py-2 px-4 rounded-md shadow-sm">Limpar Filtros</button>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 border-t border-gray-200 dark:border-gray-700 pt-8">
-                <div>
-                    <label for="machine-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna de Ativos/Máquinas</label>
-                    <select id="machine-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                </div>
-                <div>
-                    <label for="asset-name-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Nome do Bem</label>
-                    <select id="asset-name-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                </div>
-                <div>
-                    <label for="downtime-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna de Duração (horas)</label>
-                    <select id="downtime-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                </div>
-                <div>
-                    <label for="cost-center-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Linha de Produção</label>
-                    <select id="cost-center-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                </div>
-                <div>
-                    <label for="service-order-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Ordem de Serviço</label>
-                    <select id="service-order-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                </div>
-                <div>
-                    <label for="order-title-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Título da Ordem</label>
-                    <select id="order-title-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                </div>
-                <div>
-                    <label for="solution-details-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Detalhes da Solução</label>
-                    <select id="solution-details-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                </div>
-                <div>
-                    <label for="start-date-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Data de Abertura</label>
-                    <select id="start-date-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                </div>
-                <div>
-                    <label for="start-time-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Hora de Abertura</label>
-                    <select id="start-time-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                </div>
-            </div>
-
-            <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Metas dos Indicadores</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                 <div>
-                    <label for="availability-goal-yellow" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Disp. Meta Amarela (>=)</label>
-                    <input type="number" id="availability-goal-yellow" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm" value="96" placeholder="Ex: 96">
-                </div>
-                 <div>
-                    <label for="availability-goal-green" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Disp. Meta Verde (>=)</label>
-                    <input type="number" id="availability-goal-green" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm" value="97" placeholder="Ex: 97">
-                </div>
-                <div>
-                    <label for="mtbf-goal" class="block text-sm font-medium text-gray-700 dark:text-gray-300">MTBF Meta (>=)</label>
-                    <input type="number" id="mtbf-goal" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm" value="90" placeholder="Ex: 90">
-                </div>
-                <div>
-                    <label for="mttr-goal" class="block text-sm font-medium text-gray-700 dark:text-gray-300">MTTR Meta (<=)</label>
-                    <input type="number" id="mttr-goal" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm" value="2" placeholder="Ex: 2">
-                </div>
-            </div>
-
-            <div class="mt-6 text-center">
-                <button id="analyze-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg">
-                    Analisar Indicadores
-                </button>
-            </div>
+        <nav class="mt-4">
+            <a href="#" id="nav-analyzer" class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 nav-active">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                Analisador de Indicadores
+            </a>
+            <a href="#" id="nav-chatbot" class="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                Chatbot da Manutenção
+            </a>
+        </nav>
+         <div class="absolute bottom-0 w-64 p-4 border-t dark:border-gray-700">
+             <button id="theme-toggle" type="button" class="w-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
+                <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+                <span class="ml-2">Alternar Tema</span>
+            </button>
         </div>
-
-        <div id="results-section" class="hidden mt-8 max-w-7xl mx-auto">
-            <h2 class="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-white">Resultados da Análise</h2>
-            
-            <div class="space-y-6">
-                <div>
-                    <h4 class="text-lg font-semibold text-center mb-2 text-gray-800 dark:text-gray-200">Indicadores por Ativo</h4>
-                    <div id="kpi-chart-buttons-asset" class="flex justify-center flex-wrap gap-4">
-                        <button data-kpi="availability" data-group-by="asset" class="kpi-chart-btn px-4 py-2 text-sm font-medium rounded-md bg-blue-600 hover:bg-blue-700 text-white">Gráfico Disponibilidade</button>
-                        <button data-kpi="mttr" data-group-by="asset" class="kpi-chart-btn px-4 py-2 text-sm font-medium rounded-md bg-blue-600 hover:bg-blue-700 text-white">Gráfico MTTR</button>
-                        <button data-kpi="mtbf" data-group-by="asset" class="kpi-chart-btn px-4 py-2 text-sm font-medium rounded-md bg-blue-600 hover:bg-blue-700 text-white">Gráfico MTBF</button>
-                    </div>
-                </div>
-                <div>
-                     <h4 class="text-lg font-semibold text-center mb-2 text-gray-800 dark:text-gray-200">Indicadores por Centro de Custo</h4>
-                    <div id="kpi-chart-buttons-cc" class="flex justify-center flex-wrap gap-4">
-                        <button data-kpi="availability" data-group-by="costCenter" class="kpi-chart-btn px-4 py-2 text-sm font-medium rounded-md bg-teal-600 hover:bg-teal-700 text-white">Gráfico Disponibilidade</button>
-                        <button data-kpi="mttr" data-group-by="costCenter" class="kpi-chart-btn px-4 py-2 text-sm font-medium rounded-md bg-teal-600 hover:bg-teal-700 text-white">Gráfico MTTR</button>
-                        <button data-kpi="mtbf" data-group-by="costCenter" class="kpi-chart-btn px-4 py-2 text-sm font-medium rounded-md bg-teal-600 hover:bg-teal-700 text-white">Gráfico MTBF</button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="results-table-container" class="mt-6 overflow-x-auto bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700"></div>
-        </div>
-
-        <div id="error-message" class="hidden mt-6 max-w-7xl mx-auto" role="alert">
-            <!-- As mensagens de erro e aviso serão inseridas aqui -->
-        </div>
-
-        <div id="pareto-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white dark:bg-gray-800">
-                <div class="mt-3">
-                    <div class="relative text-center mb-2">
-                        <h3 id="pareto-modal-title" class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Análise de Pareto</h3>
-                        <div class="absolute top-0 right-0">
-                            <button id="print-chart-button" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" title="Imprimir Gráfico">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v3a2 2 0 002 2h6a2 2 0 002-2v-3h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm3 0h4v3H8V4zm6 8H6v4h8v-4z" clip-rule="evenodd"></path></svg>
-                            </button>
-                        </div>
-                    </div>
-                    <div id="pareto-sort-controls" class="text-center mb-4">
-                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Classificar por:</span>
-                        <button id="sort-by-hours" class="px-3 py-1 text-xs font-medium rounded-md bg-indigo-600 text-white">Horas</button>
-                        <button id="sort-by-frequency" class="px-3 py-1 text-xs font-medium rounded-md bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200">Frequência</button>
-                    </div>
-                    <div id="new-category-dropzone" class="text-center p-4 my-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400">
-                        Arraste um item aqui para criar uma nova categoria
-                    </div>
-                    <div class="mt-2 px-7 py-3">
-                        <div id="pareto-chart-container">
-                            <!-- O Canvas do gráfico será inserido aqui pelo JavaScript -->
-                        </div>
-                    </div>
-                    <div id="pareto-details-container" class="mt-4 px-7 max-h-60 overflow-y-auto"></div>
-                    <div class="items-center px-4 py-3">
-                        <button id="pareto-modal-close" class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
-                            Fechar
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="new-category-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-50">
-            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Criar Nova Categoria</h3>
-                <div class="mt-2">
-                    <input type="text" id="new-category-name" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm" placeholder="Nome da nova categoria">
-                </div>
-                <div class="mt-4 flex justify-end space-x-2">
-                     <button id="new-category-cancel" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancelar</button>
-                    <button id="new-category-create" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Criar</button>
-                </div>
-            </div>
-        </div>
-        
-        <div id="kpi-chart-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white dark:bg-gray-800">
-                <div class="mt-3 text-center">
-                    <h3 id="kpi-chart-modal-title" class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Gráfico de KPI</h3>
-                    <div id="kpi-filter-controls" class="text-center my-4 space-x-2">
-                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Exibir:</span>
-                        <button data-rank="worst" data-limit="5" class="kpi-filter-btn px-3 py-1 text-xs font-medium rounded-md bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200">Top 5 Piores</button>
-                        <button data-rank="best" data-limit="5" class="kpi-filter-btn px-3 py-1 text-xs font-medium rounded-md bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200">Top 5 Melhores</button>
-                        <button data-rank="worst" data-limit="10" class="kpi-filter-btn px-3 py-1 text-xs font-medium rounded-md bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200">Top 10 Piores</button>
-                         <button data-rank="best" data-limit="10" class="kpi-filter-btn px-3 py-1 text-xs font-medium rounded-md bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200">Top 10 Melhores</button>
-                        <button data-rank="all" class="kpi-filter-btn px-3 py-1 text-xs font-medium rounded-md bg-indigo-600 text-white">Todos</button>
-                    </div>
-                    <div class="mt-2 px-7 py-3">
-                        <div id="kpi-chart-container">
-                            <canvas id="kpi-chart-canvas"></canvas>
-                        </div>
-                    </div>
-                    <div class="items-center px-4 py-3">
-                        <button id="kpi-modal-close" class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
-                            Fechar
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="solution-guide-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white dark:bg-gray-800">
-                 <div class="mt-3">
-                    <div class="relative text-center mb-4">
-                        <h3 id="solution-guide-title" class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Guia de Soluções com IA</h3>
-                         <div class="absolute top-0 right-0">
-                            <button id="print-solution-guide-button" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" title="Imprimir Guia">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v3a2 2 0 002 2h6a2 2 0 002-2v-3h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm3 0h4v3H8V4zm6 8H6v4h8v-4z" clip-rule="evenodd"></path></svg>
-                            </button>
-                        </div>
-                    </div>
-                    <div id="solution-guide-content" class="mt-2 px-4 py-3 max-h-[70vh] overflow-y-auto text-left prose dark:prose-invert">
-                        <!-- Conteúdo do guia será inserido aqui -->
-                    </div>
-                    <div class="items-center px-4 py-3">
-                        <button id="solution-guide-close" class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
-                            Fechar
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
     </div>
+
+    <!-- Conteúdo Principal -->
+    <main class="flex-1 overflow-y-auto">
+        <div id="analyzer-page" class="page-content">
+            <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+                <header class="text-center mb-8 relative">
+                    <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">Analisador de Indicadores de Manutenção</h1>
+                    <p class="mt-2 text-lg text-gray-600 dark:text-gray-400">Calcule Disponibilidade, MTBF e MTTR a partir da sua planilha de paradas.</p>
+                </header>
+
+                <!-- Seção de Upload -->
+                <div class="max-w-3xl mx-auto bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 mb-8">
+                    <div class="flex flex-col items-center justify-center">
+                        <label for="file-upload" class="file-input-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                            </svg>
+                            <span>Escolher Planilha de Paradas</span>
+                        </label>
+                        <input id="file-upload" type="file" accept=".xlsx, .xls, .csv">
+                        <p id="file-name" class="mt-4 text-sm text-gray-500 dark:text-gray-400">Nenhum arquivo selecionado.</p>
+                    </div>
+                </div>
+
+                <!-- Seção de Configuração e Análise -->
+                <div id="analysis-section" class="hidden mt-8 max-w-7xl mx-auto bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                    <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Configurações da Análise</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-4">
+                        <div>
+                            <label for="report-start-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Data Inicial do Relatório</label>
+                            <input type="date" id="report-start-date" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label for="report-end-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Data Final do Relatório</label>
+                            <input type="date" id="report-end-date" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label for="year-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Ano</label>
+                            <select id="year-select" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                        </div>
+                        <div>
+                            <label for="month-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Mês</label>
+                            <select id="month-select" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                        </div>
+                        <div class="lg:col-span-2">
+                            <label for="week-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Semana</label>
+                            <select id="week-select" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                        </div>
+                        <div class="lg:col-span-2">
+                            <label for="production-line-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Filtrar por Linha de Produção</label>
+                            <select id="production-line-filter" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                        </div>
+                        <div>
+                            <label for="total-hours" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Total de Horas no Período</label>
+                            <input type="number" id="total-hours" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-200 rounded-md shadow-sm" readonly placeholder="Calculado automaticamente">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-transparent">&nbsp;</label>
+                            <button id="clear-filters-button" class="mt-1 w-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-100 font-bold py-2 px-4 rounded-md shadow-sm">Limpar Filtros</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 border-t border-gray-200 dark:border-gray-700 pt-8">
+                        <div>
+                            <label for="machine-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna de Ativos/Máquinas</label>
+                            <select id="machine-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                        </div>
+                        <div>
+                            <label for="asset-name-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Nome do Bem</label>
+                            <select id="asset-name-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                        </div>
+                        <div>
+                            <label for="downtime-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna de Duração (horas)</label>
+                            <select id="downtime-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                        </div>
+                        <div>
+                            <label for="cost-center-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Linha de Produção</label>
+                            <select id="cost-center-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                        </div>
+                        <div>
+                            <label for="service-order-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Ordem de Serviço</label>
+                            <select id="service-order-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                        </div>
+                        <div>
+                            <label for="order-title-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Título da Ordem</label>
+                            <select id="order-title-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                        </div>
+                        <div>
+                            <label for="solution-details-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Detalhes da Solução</label>
+                            <select id="solution-details-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                        </div>
+                        <div>
+                            <label for="start-date-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Data de Abertura</label>
+                            <select id="start-date-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                        </div>
+                        <div>
+                            <label for="start-time-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Hora de Abertura</label>
+                            <select id="start-time-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                        </div>
+                    </div>
+
+                    <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Metas dos Indicadores</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                         <div>
+                            <label for="availability-goal-yellow" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Disp. Meta Amarela (>=)</label>
+                            <input type="number" id="availability-goal-yellow" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm" value="96" placeholder="Ex: 96">
+                        </div>
+                         <div>
+                            <label for="availability-goal-green" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Disp. Meta Verde (>=)</label>
+                            <input type="number" id="availability-goal-green" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm" value="97" placeholder="Ex: 97">
+                        </div>
+                        <div>
+                            <label for="mtbf-goal" class="block text-sm font-medium text-gray-700 dark:text-gray-300">MTBF Meta (>=)</label>
+                            <input type="number" id="mtbf-goal" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm" value="90" placeholder="Ex: 90">
+                        </div>
+                        <div>
+                            <label for="mttr-goal" class="block text-sm font-medium text-gray-700 dark:text-gray-300">MTTR Meta (<=)</label>
+                            <input type="number" id="mttr-goal" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm" value="2" placeholder="Ex: 2">
+                        </div>
+                    </div>
+
+                    <div class="mt-6 text-center">
+                        <button id="analyze-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg">
+                            Analisar Indicadores
+                        </button>
+                    </div>
+                </div>
+
+                <div id="results-section" class="hidden mt-8 max-w-7xl mx-auto">
+                    <h2 class="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-white">Resultados da Análise</h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="text-lg font-semibold text-center mb-2 text-gray-800 dark:text-gray-200">Indicadores por Ativo</h4>
+                            <div id="kpi-chart-buttons-asset" class="flex justify-center flex-wrap gap-4">
+                                <button data-kpi="availability" data-group-by="asset" class="kpi-chart-btn px-4 py-2 text-sm font-medium rounded-md bg-blue-600 hover:bg-blue-700 text-white">Gráfico Disponibilidade</button>
+                                <button data-kpi="mttr" data-group-by="asset" class="kpi-chart-btn px-4 py-2 text-sm font-medium rounded-md bg-blue-600 hover:bg-blue-700 text-white">Gráfico MTTR</button>
+                                <button data-kpi="mtbf" data-group-by="asset" class="kpi-chart-btn px-4 py-2 text-sm font-medium rounded-md bg-blue-600 hover:bg-blue-700 text-white">Gráfico MTBF</button>
+                            </div>
+                        </div>
+                        <div>
+                             <h4 class="text-lg font-semibold text-center mb-2 text-gray-800 dark:text-gray-200">Indicadores por Centro de Custo</h4>
+                            <div id="kpi-chart-buttons-cc" class="flex justify-center flex-wrap gap-4">
+                                <button data-kpi="availability" data-group-by="costCenter" class="kpi-chart-btn px-4 py-2 text-sm font-medium rounded-md bg-teal-600 hover:bg-teal-700 text-white">Gráfico Disponibilidade</button>
+                                <button data-kpi="mttr" data-group-by="costCenter" class="kpi-chart-btn px-4 py-2 text-sm font-medium rounded-md bg-teal-600 hover:bg-teal-700 text-white">Gráfico MTTR</button>
+                                <button data-kpi="mtbf" data-group-by="costCenter" class="kpi-chart-btn px-4 py-2 text-sm font-medium rounded-md bg-teal-600 hover:bg-teal-700 text-white">Gráfico MTBF</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="results-table-container" class="mt-6 overflow-x-auto bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700"></div>
+                </div>
+
+                <div id="error-message" class="hidden mt-6 max-w-7xl mx-auto" role="alert">
+                    <!-- As mensagens de erro e aviso serão inseridas aqui -->
+                </div>
+            </div>
+        </div>
+
+        <div id="chatbot-page" class="page-content hidden h-full flex flex-col">
+            <header class="text-center p-4 border-b dark:border-gray-700 flex-shrink-0">
+                <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">Chatbot da Manutenção</h1>
+                <p class="mt-2 text-lg text-gray-600 dark:text-gray-400">Converse com seus dados de manutenção.</p>
+            </header>
+            <div id="chat-container" class="flex-1 p-4 space-y-4 overflow-y-auto flex flex-col">
+                <!-- Mensagens do chat serão inseridas aqui -->
+            </div>
+            <div class="p-4 border-t dark:border-gray-700 flex-shrink-0">
+                <div class="flex">
+                    <input type="text" id="chat-input" class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-l-md" placeholder="Pergunte sobre uma máquina ou problema...">
+                    <button id="chat-send-btn" class="bg-indigo-600 text-white px-4 rounded-r-md hover:bg-indigo-700 disabled:bg-indigo-400">Enviar</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Modals -->
+<div id="pareto-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white dark:bg-gray-800">
+        <div class="mt-3">
+            <div class="relative text-center mb-2">
+                <h3 id="pareto-modal-title" class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Análise de Pareto</h3>
+                <div class="absolute top-0 right-0">
+                    <button id="print-chart-button" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" title="Imprimir Gráfico">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v3a2 2 0 002 2h6a2 2 0 002-2v-3h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm3 0h4v3H8V4zm6 8H6v4h8v-4z" clip-rule="evenodd"></path></svg>
+                    </button>
+                </div>
+            </div>
+            <div id="pareto-sort-controls" class="text-center mb-4">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Classificar por:</span>
+                <button id="sort-by-hours" class="px-3 py-1 text-xs font-medium rounded-md bg-indigo-600 text-white">Horas</button>
+                <button id="sort-by-frequency" class="px-3 py-1 text-xs font-medium rounded-md bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200">Frequência</button>
+            </div>
+            <div id="new-category-dropzone" class="text-center p-4 my-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400">
+                Arraste um item aqui para criar uma nova categoria
+            </div>
+            <div class="mt-2 px-7 py-3">
+                <div id="pareto-chart-container">
+                    <!-- O Canvas do gráfico será inserido aqui pelo JavaScript -->
+                </div>
+            </div>
+            <div id="pareto-details-container" class="mt-4 px-7 max-h-60 overflow-y-auto"></div>
+            <div class="items-center px-4 py-3">
+                <button id="pareto-modal-close" class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="new-category-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Criar Nova Categoria</h3>
+        <div class="mt-2">
+            <input type="text" id="new-category-name" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm" placeholder="Nome da nova categoria">
+        </div>
+        <div class="mt-4 flex justify-end space-x-2">
+             <button id="new-category-cancel" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancelar</button>
+            <button id="new-category-create" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Criar</button>
+        </div>
+    </div>
+</div>
+
+<div id="kpi-chart-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white dark:bg-gray-800">
+        <div class="mt-3 text-center">
+            <h3 id="kpi-chart-modal-title" class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Gráfico de KPI</h3>
+            <div id="kpi-filter-controls" class="text-center my-4 space-x-2">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Exibir:</span>
+                <button data-rank="worst" data-limit="5" class="kpi-filter-btn px-3 py-1 text-xs font-medium rounded-md bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200">Top 5 Piores</button>
+                <button data-rank="best" data-limit="5" class="kpi-filter-btn px-3 py-1 text-xs font-medium rounded-md bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200">Top 5 Melhores</button>
+                <button data-rank="worst" data-limit="10" class="kpi-filter-btn px-3 py-1 text-xs font-medium rounded-md bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200">Top 10 Piores</button>
+                 <button data-rank="best" data-limit="10" class="kpi-filter-btn px-3 py-1 text-xs font-medium rounded-md bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200">Top 10 Melhores</button>
+                <button data-rank="all" class="kpi-filter-btn px-3 py-1 text-xs font-medium rounded-md bg-indigo-600 text-white">Todos</button>
+            </div>
+            <div class="mt-2 px-7 py-3">
+                <div id="kpi-chart-container">
+                    <canvas id="kpi-chart-canvas"></canvas>
+                </div>
+            </div>
+            <div class="items-center px-4 py-3">
+                <button id="kpi-modal-close" class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="solution-guide-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white dark:bg-gray-800">
+         <div class="mt-3">
+            <div class="relative text-center mb-4">
+                <h3 id="solution-guide-title" class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Guia de Soluções com IA</h3>
+                 <div class="absolute top-0 right-0">
+                    <button id="print-solution-guide-button" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" title="Imprimir Guia">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v3a2 2 0 002 2h6a2 2 0 002-2v-3h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm3 0h4v3H8V4zm6 8H6v4h8v-4z" clip-rule="evenodd"></path></svg>
+                    </button>
+                </div>
+            </div>
+            <div id="solution-guide-content" class="mt-2 px-4 py-3 max-h-[70vh] overflow-y-auto text-left prose dark:prose-invert">
+                <!-- Conteúdo do guia será inserido aqui -->
+            </div>
+            <div class="items-center px-4 py-3">
+                <button id="solution-guide-close" class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
     <script>
         const domElements = {
@@ -374,6 +465,13 @@
             solutionGuideContent: document.getElementById('solution-guide-content'),
             solutionGuideClose: document.getElementById('solution-guide-close'),
             printSolutionGuideButton: document.getElementById('print-solution-guide-button'),
+            navAnalyzer: document.getElementById('nav-analyzer'),
+            navChatbot: document.getElementById('nav-chatbot'),
+            analyzerPage: document.getElementById('analyzer-page'),
+            chatbotPage: document.getElementById('chatbot-page'),
+            chatContainer: document.getElementById('chat-container'),
+            chatInput: document.getElementById('chat-input'),
+            chatSendBtn: document.getElementById('chat-send-btn'),
         };
 
         let jsonData = null;
@@ -521,7 +619,7 @@
         }
 
         function populateWeekSelector() {
-            domElements.weekSelect.innerHTML = '<option value="">Semana (Todas)</option>';
+            domElements.weekSelect.innerHTML = '<option value="">Semana (Todos)</option>';
             const year = parseInt(domElements.yearSelect.value);
             const month = parseInt(domElements.monthSelect.value);
             if (isNaN(year) || isNaN(month)) return;
@@ -1467,39 +1565,6 @@
             domElements.kpiModalClose.addEventListener('click', () => {
                 domElements.kpiChartModal.classList.add('hidden');
             });
-            
-            domElements.solutionGuideClose.addEventListener('click', () => {
-                domElements.solutionGuideModal.classList.add('hidden');
-            });
-
-            domElements.printSolutionGuideButton.addEventListener('click', () => {
-                const content = domElements.solutionGuideContent.innerHTML;
-                const title = domElements.solutionGuideTitle.textContent;
-                const printWindow = window.open('', '_blank');
-                printWindow.document.write(`
-                    <html>
-                        <head><title>${title}</title>
-                        <style>
-                            body { font-family: 'Inter', sans-serif; margin: 20px; }
-                            h4 { font-size: 1.25em; margin-bottom: 0.5em; border-bottom: 1px solid #ccc; padding-bottom: 5px;}
-                            ol { padding-left: 20px; }
-                            li { margin-bottom: 1em; }
-                            b { font-weight: 600; }
-                        </style>
-                        </head>
-                        <body>
-                            <h1>${title}</h1>
-                            ${content}
-                            <script>
-                                window.onload = () => {
-                                    window.print();
-                                    window.close();
-                                };
-                            <\/script>
-                        </body>
-                    </html>
-                `);
-            });
         }
         
         function addDragAndDropListeners() {
@@ -1838,6 +1903,99 @@
             domElements.solutionGuideContent.innerHTML = htmlContent;
             domElements.solutionGuideModal.classList.remove('hidden');
         }
+
+        function switchPage(pageId) {
+            document.querySelectorAll('.page-content').forEach(page => page.classList.add('hidden'));
+            document.getElementById(pageId).classList.remove('hidden');
+
+            document.querySelectorAll('nav a').forEach(link => {
+                link.classList.remove('nav-active', 'bg-gray-200', 'dark:bg-gray-700');
+            });
+
+            const activeLink = document.getElementById(pageId === 'analyzer-page' ? 'nav-analyzer' : 'nav-chatbot');
+            activeLink.classList.add('nav-active');
+        }
+
+        domElements.navAnalyzer.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchPage('analyzer-page');
+        });
+
+        domElements.navChatbot.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchPage('chatbot-page');
+        });
+
+        async function getChatbotResponse(question) {
+            if (!jsonData) {
+                showMessage("Por favor, carregue uma planilha de dados na aba 'Analisador' primeiro.", 'warning');
+                return "Por favor, carregue os dados primeiro.";
+            }
+
+            const apiKey = "AIzaSyDO47ckHgjPh1okBYn6cu605TEGNHxu29w"; // Insira sua chave de API do Google AI Studio aqui.
+            if (!apiKey) {
+                 const msg = "Chave de API do Gemini não configurada. Por favor, adicione sua chave de API no código para usar o chatbot.";
+                 return "Erro de Configuração: A chave de API não foi adicionada ao código. Edite o arquivo HTML para continuar.";
+            }
+
+            const context = JSON.stringify(jsonData.slice(0, 100));
+            const prompt = `Você é um especialista em manutenção. Baseado nos seguintes dados de manutenção (em JSON): ${context}. Responda à seguinte pergunta do usuário: "${question}"`;
+
+            let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+            const payload = { contents: chatHistory };
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`Erro na API: ${response.statusText}`);
+                const result = await response.json();
+                return result.candidates[0].content.parts[0].text;
+            } catch (error) {
+                console.error("Erro na API do Chatbot:", error);
+                return "Desculpe, ocorreu um erro ao processar sua pergunta.";
+            }
+        }
+
+        async function handleChatSubmit() {
+            const userInput = domElements.chatInput.value.trim();
+            if (!userInput) return;
+
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'p-3 rounded-lg user-message chat-message';
+            userMessageDiv.textContent = userInput;
+            domElements.chatContainer.appendChild(userMessageDiv);
+
+            domElements.chatInput.value = '';
+            domElements.chatSendBtn.disabled = true;
+            
+            const thinkingDiv = document.createElement('div');
+            thinkingDiv.className = 'p-3 rounded-lg bot-message chat-message text-gray-500 dark:text-gray-400';
+            thinkingDiv.textContent = 'Pensando...';
+            domElements.chatContainer.appendChild(thinkingDiv);
+            domElements.chatContainer.scrollTop = domElements.chatContainer.scrollHeight;
+
+            const botResponse = await getChatbotResponse(userInput);
+            
+            domElements.chatContainer.removeChild(thinkingDiv);
+            const botMessageDiv = document.createElement('div');
+            botMessageDiv.className = 'p-3 rounded-lg bot-message chat-message';
+            botMessageDiv.textContent = botResponse;
+            domElements.chatContainer.appendChild(botMessageDiv);
+
+            domElements.chatContainer.scrollTop = domElements.chatContainer.scrollHeight;
+            domElements.chatSendBtn.disabled = false;
+        }
+
+        domElements.chatSendBtn.addEventListener('click', handleChatSubmit);
+        domElements.chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleChatSubmit();
+            }
+        });
     </script>
 </body>
 </html>
