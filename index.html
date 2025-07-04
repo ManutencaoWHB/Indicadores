@@ -101,9 +101,12 @@
         }
         .nav-active {
             background-color: #eef2ff; /* bg-indigo-100 */
+            color: #312e81;
+            font-weight: 600;
         }
         .dark .nav-active {
             background-color: #3730a3; /* dark:bg-indigo-800 */
+            color: white;
         }
     </style>
 </head>
@@ -619,7 +622,7 @@
         }
 
         function populateWeekSelector() {
-            domElements.weekSelect.innerHTML = '<option value="">Semana (Todos)</option>';
+            domElements.weekSelect.innerHTML = '<option value="">Semana (Todas)</option>';
             const year = parseInt(domElements.yearSelect.value);
             const month = parseInt(domElements.monthSelect.value);
             if (isNaN(year) || isNaN(month)) return;
@@ -1471,100 +1474,6 @@
                     }
                 });
             });
-            
-            domElements.paretoModalClose.addEventListener('click', () => {
-                 domElements.paretoModal.classList.add('hidden');
-                 domElements.paretoDetailsContainer.innerHTML = '';
-                 currentParetoData = null; 
-            });
-            
-            domElements.sortByHoursButton.addEventListener('click', () => {
-                if(currentParetoData) createParetoChart(currentParetoData, currentParetoMachineId, 'hours');
-                domElements.sortByHoursButton.classList.replace('bg-gray-200', 'bg-indigo-600');
-                domElements.sortByHoursButton.classList.add('text-white');
-                domElements.sortByFrequencyButton.classList.replace('bg-indigo-600', 'bg-gray-200');
-                domElements.sortByFrequencyButton.classList.remove('text-white');
-            });
-
-            domElements.sortByFrequencyButton.addEventListener('click', () => {
-                if(currentParetoData) createParetoChart(currentParetoData, currentParetoMachineId, 'frequency');
-                domElements.sortByFrequencyButton.classList.replace('bg-gray-200', 'bg-indigo-600');
-                domElements.sortByFrequencyButton.classList.add('text-white');
-                domElements.sortByHoursButton.classList.replace('bg-indigo-600', 'bg-gray-200');
-                domElements.sortByHoursButton.classList.remove('text-white');
-            });
-
-            domElements.printChartButton.addEventListener('click', () => {
-                if(paretoChartInstance) {
-                    const url = paretoChartInstance.toBase64Image();
-                    const printWindow = window.open('', '_blank');
-                    printWindow.document.write(`
-                        <html>
-                            <head><title>Imprimir Gráfico de Pareto</title></head>
-                            <body style="text-align: center; margin-top: 20px;">
-                                <img src="${url}" alt="Gráfico de Pareto">
-                                <script>
-                                    window.onload = () => {
-                                        window.print();
-                                        window.close();
-                                    };
-                                <\/script>
-                            </body>
-                        </html>
-                    `);
-                }
-            });
-            
-            document.querySelectorAll('.kpi-chart-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const kpiType = e.currentTarget.dataset.kpi;
-                    const groupBy = e.currentTarget.dataset.groupBy;
-                    currentKpiChartType = kpiType; 
-                    
-                    document.querySelectorAll('#kpi-filter-controls button').forEach(btn => {
-                        btn.classList.remove('bg-indigo-600', 'text-white');
-                        btn.classList.add('bg-gray-200', 'dark:bg-gray-600', 'text-gray-800', 'dark:text-gray-200');
-                        if (btn.dataset.rank === 'all') {
-                            btn.classList.add('bg-indigo-600', 'text-white');
-                            btn.classList.remove('bg-gray-200', 'dark:bg-gray-600', 'text-gray-800', 'dark:text-gray-200');
-                        }
-                    });
-
-                    if (groupBy === 'costCenter') {
-                        handleCostCenterChartGeneration(kpiType);
-                    } else {
-                        const assetData = lastResults.map(res => ({ ...res, label: res.machineId }));
-                        generateKpiChart(kpiType, assetData, 'asset');
-                    }
-                });
-            });
-            
-            domElements.kpiFilterControls.addEventListener('click', (e) => {
-                if (e.target.tagName === 'BUTTON') {
-                    const rank = e.target.dataset.rank;
-                    const limit = e.target.dataset.limit ? parseInt(e.target.dataset.limit) : null;
-                    const groupBy = document.querySelector('#kpi-filter-controls').dataset.groupBy;
-                    
-                    document.querySelectorAll('#kpi-filter-controls button').forEach(btn => {
-                        btn.classList.remove('bg-indigo-600', 'text-white');
-                        btn.classList.add('bg-gray-200', 'dark:bg-gray-600', 'text-gray-800', 'dark:text-gray-200');
-                    });
-                    
-                    e.target.classList.add('bg-indigo-600', 'text-white');
-                    e.target.classList.remove('bg-gray-200', 'dark:bg-gray-600', 'text-gray-800', 'dark:text-gray-200');
-                    
-                    if(groupBy === 'costCenter') {
-                        handleCostCenterChartGeneration(currentKpiChartType, rank, limit);
-                    } else {
-                         const assetData = lastResults.map(res => ({ ...res, label: res.machineId }));
-                         generateKpiChart(currentKpiChartType, assetData, 'asset', rank, limit);
-                    }
-                }
-            });
-
-            domElements.kpiModalClose.addEventListener('click', () => {
-                domElements.kpiChartModal.classList.add('hidden');
-            });
         }
         
         function addDragAndDropListeners() {
@@ -1676,22 +1585,6 @@
             domElements.paretoDetailsContainer.innerHTML = '<p class="text-center text-sm text-gray-500 dark:text-gray-400">Grupo atualizado. Clique em uma barra para ver os novos detalhes.</p>'; 
         }
         
-        domElements.newCategoryCreateButton.addEventListener('click', () => {
-            const newName = domElements.newCategoryNameInput.value.trim();
-            if (newName && draggedItemData && draggedItemData.orderId !== null) {
-                updateParetoData(draggedItemData.orderId, newName);
-                domElements.newCategoryModal.classList.add('hidden');
-                domElements.newCategoryNameInput.value = '';
-                draggedItemData = null; 
-            }
-        });
-        
-        domElements.newCategoryCancelButton.addEventListener('click', () => {
-            domElements.newCategoryModal.classList.add('hidden');
-            domElements.newCategoryNameInput.value = '';
-            draggedItemData = null;
-        });
-
         function generateKpiChart(kpiType, data, groupBy, rank = 'all', limit = null) {
             if (kpiChartInstance) {
                 kpiChartInstance.destroy();
@@ -1909,22 +1802,12 @@
             document.getElementById(pageId).classList.remove('hidden');
 
             document.querySelectorAll('nav a').forEach(link => {
-                link.classList.remove('nav-active', 'bg-gray-200', 'dark:bg-gray-700');
+                link.classList.remove('nav-active');
             });
 
             const activeLink = document.getElementById(pageId === 'analyzer-page' ? 'nav-analyzer' : 'nav-chatbot');
             activeLink.classList.add('nav-active');
         }
-
-        domElements.navAnalyzer.addEventListener('click', (e) => {
-            e.preventDefault();
-            switchPage('analyzer-page');
-        });
-
-        domElements.navChatbot.addEventListener('click', (e) => {
-            e.preventDefault();
-            switchPage('chatbot-page');
-        });
 
         async function getChatbotResponse(question) {
             if (!jsonData) {
@@ -1990,12 +1873,200 @@
             domElements.chatSendBtn.disabled = false;
         }
 
-        domElements.chatSendBtn.addEventListener('click', handleChatSubmit);
-        domElements.chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                handleChatSubmit();
-            }
-        });
+        // INÍCIO DA CORREÇÃO: Centralização dos listeners de eventos
+        function initializeEventListeners() {
+            domElements.navAnalyzer.addEventListener('click', (e) => {
+                e.preventDefault();
+                switchPage('analyzer-page');
+            });
+
+            domElements.navChatbot.addEventListener('click', (e) => {
+                e.preventDefault();
+                switchPage('chatbot-page');
+            });
+
+            domElements.chatSendBtn.addEventListener('click', handleChatSubmit);
+            domElements.chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    handleChatSubmit();
+                }
+            });
+
+            domElements.paretoModalClose.addEventListener('click', () => {
+                 domElements.paretoModal.classList.add('hidden');
+                 domElements.paretoDetailsContainer.innerHTML = '';
+                 currentParetoData = null; 
+            });
+            
+            domElements.sortByHoursButton.addEventListener('click', () => {
+                if(currentParetoData) createParetoChart(currentParetoData, currentParetoMachineId, 'hours');
+                domElements.sortByHoursButton.classList.replace('bg-gray-200', 'bg-indigo-600');
+                domElements.sortByHoursButton.classList.add('text-white');
+                domElements.sortByFrequencyButton.classList.replace('bg-indigo-600', 'bg-gray-200');
+                domElements.sortByFrequencyButton.classList.remove('text-white');
+            });
+
+            domElements.sortByFrequencyButton.addEventListener('click', () => {
+                if(currentParetoData) createParetoChart(currentParetoData, currentParetoMachineId, 'frequency');
+                domElements.sortByFrequencyButton.classList.replace('bg-gray-200', 'bg-indigo-600');
+                domElements.sortByFrequencyButton.classList.add('text-white');
+                domElements.sortByHoursButton.classList.replace('bg-indigo-600', 'bg-gray-200');
+                domElements.sortByHoursButton.classList.remove('text-white');
+            });
+
+            domElements.printChartButton.addEventListener('click', () => {
+                if(paretoChartInstance) {
+                    const canvas = paretoChartInstance.canvas;
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Store original colors
+                    const originalColors = {
+                        xTicks: paretoChartInstance.options.scales.x.ticks.color,
+                        yTicks: paretoChartInstance.options.scales.y.ticks.color,
+                        y1Ticks: paretoChartInstance.options.scales.y1.ticks.color,
+                        legend: paretoChartInstance.options.plugins.legend.labels.color,
+                        yTitle: paretoChartInstance.options.scales.y.title.color,
+                        y1Title: paretoChartInstance.options.scales.y1.title.color,
+                        datalabels: paretoChartInstance.options.plugins.datalabels.color
+                    };
+
+                    // Set print-friendly colors (black)
+                    const printColor = '#000000';
+                    paretoChartInstance.options.scales.x.ticks.color = printColor;
+                    paretoChartInstance.options.scales.y.ticks.color = printColor;
+                    paretoChartInstance.options.scales.y1.ticks.color = printColor;
+                    paretoChartInstance.options.plugins.legend.labels.color = printColor;
+                    paretoChartInstance.options.scales.y.title.color = printColor;
+                    paretoChartInstance.options.scales.y1.title.color = printColor;
+                    paretoChartInstance.options.plugins.datalabels.color = printColor;
+                    
+                    paretoChartInstance.update();
+
+                    // Draw white background and get image URL
+                    ctx.save();
+                    ctx.globalCompositeOperation = 'destination-over';
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    const url = canvas.toDataURL('image/png');
+                    ctx.restore();
+
+                    // Restore original colors
+                    paretoChartInstance.options.scales.x.ticks.color = originalColors.xTicks;
+                    paretoChartInstance.options.scales.y.ticks.color = originalColors.yTicks;
+                    paretoChartInstance.options.scales.y1.ticks.color = originalColors.y1Ticks;
+                    paretoChartInstance.options.plugins.legend.labels.color = originalColors.legend;
+                    paretoChartInstance.options.scales.y.title.color = originalColors.yTitle;
+                    paretoChartInstance.options.scales.y1.title.color = originalColors.y1Title;
+                    paretoChartInstance.options.plugins.datalabels.color = originalColors.datalabels;
+
+                    paretoChartInstance.update();
+
+                    const printWindow = window.open('', '_blank');
+                    printWindow.document.write(`
+                        <html>
+                            <head><title>Imprimir Gráfico de Pareto</title></head>
+                            <body style="text-align: center; margin-top: 20px;">
+                                <img src="${url}" alt="Gráfico de Pareto">
+                                <script>
+                                    window.onload = () => {
+                                        window.print();
+                                        window.close();
+                                    };
+                                <\/script>
+                            </body>
+                        </html>
+                    `);
+                }
+            });
+            
+            document.querySelectorAll('.kpi-chart-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const kpiType = e.currentTarget.dataset.kpi;
+                    const groupBy = e.currentTarget.dataset.groupBy;
+                    currentKpiChartType = kpiType; 
+                    
+                    document.querySelectorAll('#kpi-filter-controls button').forEach(btn => {
+                        btn.classList.remove('bg-indigo-600', 'text-white');
+                        btn.classList.add('bg-gray-200', 'dark:bg-gray-600', 'text-gray-800', 'dark:text-gray-200');
+                        if (btn.dataset.rank === 'all') {
+                            btn.classList.add('bg-indigo-600', 'text-white');
+                            btn.classList.remove('bg-gray-200', 'dark:bg-gray-600', 'text-gray-800', 'dark:text-gray-200');
+                        }
+                    });
+
+                    if (groupBy === 'costCenter') {
+                        handleCostCenterChartGeneration(kpiType);
+                    } else {
+                        const assetData = lastResults.map(res => ({ ...res, label: res.machineId }));
+                        generateKpiChart(kpiType, assetData, 'asset');
+                    }
+                });
+            });
+            
+            domElements.kpiFilterControls.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') {
+                    const rank = e.target.dataset.rank;
+                    const limit = e.target.dataset.limit ? parseInt(e.target.dataset.limit) : null;
+                    const groupBy = document.querySelector('#kpi-filter-controls').dataset.groupBy;
+                    
+                    document.querySelectorAll('#kpi-filter-controls button').forEach(btn => {
+                        btn.classList.remove('bg-indigo-600', 'text-white');
+                        btn.classList.add('bg-gray-200', 'dark:bg-gray-600', 'text-gray-800', 'dark:text-gray-200');
+                    });
+                    
+                    e.target.classList.add('bg-indigo-600', 'text-white');
+                    e.target.classList.remove('bg-gray-200', 'dark:bg-gray-600', 'text-gray-800', 'dark:text-gray-200');
+                    
+                    if(groupBy === 'costCenter') {
+                        handleCostCenterChartGeneration(currentKpiChartType, rank, limit);
+                    } else {
+                         const assetData = lastResults.map(res => ({ ...res, label: res.machineId }));
+                         generateKpiChart(currentKpiChartType, assetData, 'asset', rank, limit);
+                    }
+                }
+            });
+
+            domElements.kpiModalClose.addEventListener('click', () => {
+                domElements.kpiChartModal.classList.add('hidden');
+            });
+            
+            domElements.solutionGuideClose.addEventListener('click', () => {
+                domElements.solutionGuideModal.classList.add('hidden');
+            });
+
+            domElements.printSolutionGuideButton.addEventListener('click', () => {
+                const content = domElements.solutionGuideContent.innerHTML;
+                const title = domElements.solutionGuideTitle.textContent;
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <html>
+                        <head><title>${title}</title>
+                        <style>
+                            body { font-family: 'Inter', sans-serif; margin: 20px; }
+                            h4 { font-size: 1.25em; margin-bottom: 0.5em; border-bottom: 1px solid #ccc; padding-bottom: 5px;}
+                            ol { padding-left: 20px; }
+                            li { margin-bottom: 1em; }
+                            b { font-weight: 600; }
+                        </style>
+                        </head>
+                        <body>
+                            <h1>${title}</h1>
+                            ${content}
+                            <script>
+                                window.onload = () => {
+                                    window.print();
+                                    window.close();
+                                };
+                            <\/script>
+                        </body>
+                    </html>
+                `);
+            });
+        }
+
+        // Inicializa todos os listeners de eventos quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', initializeEventListeners);
+        // FIM DA CORREÇÃO
     </script>
 </body>
 </html>
