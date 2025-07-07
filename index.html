@@ -113,8 +113,8 @@
 <body class="antialiased bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
 
 <div class="flex h-screen bg-gray-100 dark:bg-gray-900">
-    <!-- Sidebar -->
-    <div class="w-64 bg-white dark:bg-gray-800 shadow-md flex-shrink-0">
+    <!-- INÍCIO DA ALTERAÇÃO: Sidebar com classes para responsividade -->
+    <div id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 shadow-md flex-shrink-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out z-40">
         <div class="p-4 border-b dark:border-gray-700">
             <h2 class="text-xl font-bold text-gray-900 dark:text-white">Menu Principal</h2>
         </div>
@@ -136,10 +136,20 @@
             </button>
         </div>
     </div>
+    <!-- FIM DA ALTERAÇÃO -->
+
+    <!-- Overlay para o menu mobile -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
 
     <!-- Conteúdo Principal -->
     <main class="flex-1 overflow-y-auto">
         <div id="analyzer-page" class="page-content">
+            <header class="p-4 border-b dark:border-gray-700 md:hidden">
+                 <!-- Botão Hambúrguer -->
+                 <button id="menu-toggle-btn" class="text-gray-500 dark:text-gray-400 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                 </button>
+            </header>
             <div class="container mx-auto p-4 sm:p-6 lg:p-8">
                 <header class="text-center mb-8 relative">
                     <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">Analisador de Indicadores de Manutenção</h1>
@@ -475,6 +485,9 @@
             chatContainer: document.getElementById('chat-container'),
             chatInput: document.getElementById('chat-input'),
             chatSendBtn: document.getElementById('chat-send-btn'),
+            menuToggleBtn: document.getElementById('menu-toggle-btn'),
+            sidebar: document.getElementById('sidebar'),
+            sidebarOverlay: document.getElementById('sidebar-overlay'),
         };
 
         let jsonData = null;
@@ -497,14 +510,6 @@
             domElements.reportStartDateInput.style.colorScheme = colorScheme;
             domElements.reportEndDateInput.style.colorScheme = colorScheme;
         };
-
-        domElements.themeToggleBtn.addEventListener('click', () => {
-            document.documentElement.classList.toggle('dark');
-            localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-            applyTheme();
-        });
-        
-        applyTheme();
 
         const showMessage = (message, type = 'error') => {
             const colorClasses = { error: 'bg-red-100 border-red-400 text-red-700', warning: 'bg-yellow-100 border-yellow-400 text-yellow-800', success: 'bg-green-100 border-green-400 text-green-800' };
