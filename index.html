@@ -1780,14 +1780,9 @@
                 return "Por favor, carregue os dados primeiro.";
             }
 
-            const apiKey = "AIzaSyDO47ckHgjPh1okBYn6cu605TEGNHxu29w"; // Insira sua chave de API do Google AI Studio aqui.
-            if (!apiKey) {
-                 const msg = "Chave de API do Gemini não configurada. Por favor, adicione sua chave de API no código para usar o chatbot.";
-                 return "Erro de Configuração: A chave de API não foi adicionada ao código. Edite o arquivo HTML para continuar.";
-            }
-
-            const context = JSON.stringify(jsonData.slice(0, 100));
-            const prompt = `Você é um especialista em manutenção. Baseado nos seguintes dados de manutenção (em JSON): ${context}. Responda à seguinte pergunta do usuário: "${question}"`;
+            const apiKey = "AIzaSyDO47ckHgjPh1okBYn6cu605TEGNHxu29w";
+            const context = JSON.stringify(jsonData); // Envia a planilha inteira para o contexto
+            const prompt = `Você é um especialista em manutenção sênior. Sua base de conhecimento são os seguintes dados de manutenção em formato JSON: ${context}. Responda à pergunta do usuário de forma concisa e focada, utilizando os dados fornecidos. A pergunta é: "${question}"`;
 
             let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
             const payload = { contents: chatHistory };
