@@ -16,46 +16,46 @@
     <!-- 2. Configuração do Tailwind e Script do Dark Mode DEPOIS -->
     <script>
         tailwind.config = {
-          darkMode: 'class',
-          theme: {
-            extend: {
-                typography: (theme) => ({
-                    DEFAULT: {
-                        css: {
-                            'h4': {
-                                color: theme('colors.gray.800'),
-                                fontWeight: '600',
-                                marginBottom: theme('spacing.2'),
-                            },
-                             'ol > li::before': {
-                                color: theme('colors.gray.500'),
-                            },
-                            'ol > li': {
-                                marginTop: theme('spacing.2'),
-                                paddingTop: theme('spacing.2'),
-                            }
-                        },
-                    },
-                    invert: {
-                         css: {
-                            'h4': {
-                                color: theme('colors.gray.200'),
-                            },
-                             'ol > li::before': {
-                                color: theme('colors.gray.400'),
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    typography: (theme) => ({
+                        DEFAULT: {
+                            css: {
+                                'h4': {
+                                    color: theme('colors.gray.800'),
+                                    fontWeight: '600',
+                                    marginBottom: theme('spacing.2'),
+                                },
+                                'ol > li::before': {
+                                    color: theme('colors.gray.500'),
+                                },
+                                'ol > li': {
+                                    marginTop: theme('spacing.2'),
+                                    paddingTop: theme('spacing.2'),
+                                }
                             },
                         },
-                    }
-                })
+                        invert: {
+                            css: {
+                                'h4': {
+                                    color: theme('colors.gray.200'),
+                                },
+                                'ol > li::before': {
+                                    color: theme('colors.gray.400'),
+                                },
+                            },
+                        }
+                    })
+                }
             }
-          }
         }
 
         // Script para aplicar o tema na carga inicial
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-          document.documentElement.classList.add('dark')
+            document.documentElement.classList.add('dark')
         } else {
-          document.documentElement.classList.remove('dark')
+            document.documentElement.classList.remove('dark')
         }
     </script>
 
@@ -97,7 +97,7 @@
             background-color: #e5e7eb;
         }
         .dark .bot-message {
-             background-color: #374151;
+            background-color: #374151;
         }
         .nav-active {
             background-color: #eef2ff; /* bg-indigo-100 */
@@ -128,8 +128,8 @@
                 Chatbot da Manutenção
             </a>
         </nav>
-         <div class="absolute bottom-0 w-64 p-4 border-t dark:border-gray-700">
-             <button id="theme-toggle" type="button" class="w-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
+        <div class="absolute bottom-0 w-64 p-4 border-t dark:border-gray-700">
+            <button id="theme-toggle" type="button" class="w-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
                 <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
                 <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
                 <span class="ml-2">Alternar Tema</span>
@@ -144,10 +144,10 @@
     <main class="flex-1 overflow-y-auto">
         <div id="analyzer-page" class="page-content">
             <header class="p-4 border-b dark:border-gray-700 md:hidden">
-                 <!-- Botão Hambúrguer -->
-                 <button id="menu-toggle-btn" class="text-gray-500 dark:text-gray-400 focus:outline-none">
+                <!-- Botão Hambúrguer -->
+                <button id="menu-toggle-btn" class="text-gray-500 dark:text-gray-400 focus:outline-none">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                 </button>
+                </button>
             </header>
             <div class="container mx-auto p-4 sm:p-6 lg:p-8">
                 <header class="text-center mb-8 relative">
@@ -208,62 +208,71 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 border-t border-gray-200 dark:border-gray-700 pt-8">
-                        <div>
-                            <label for="machine-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna de Ativos/Máquinas</label>
-                            <select id="machine-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                        </div>
-                        <div>
-                            <label for="asset-name-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Nome do Bem</label>
-                            <select id="asset-name-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                        </div>
-                        <div>
-                            <label for="downtime-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna de Duração (horas)</label>
-                            <select id="downtime-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                        </div>
-                        <div>
-                            <label for="cost-center-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Linha de Produção</label>
-                            <select id="cost-center-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                        </div>
-                        <div>
-                            <label for="service-order-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Ordem de Serviço</label>
-                            <select id="service-order-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                        </div>
-                        <div>
-                            <label for="order-title-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Título da Ordem</label>
-                            <select id="order-title-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                        </div>
-                        <div>
-                            <label for="solution-details-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Detalhes da Solução</label>
-                            <select id="solution-details-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                        </div>
-                        <div>
-                            <label for="start-date-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Data de Abertura</label>
-                            <select id="start-date-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                        </div>
-                        <div>
-                            <label for="start-time-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Hora de Abertura</label>
-                            <select id="start-time-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                        </div>
+                    <!-- Toggle for column mapping and goals -->
+                    <div class="flex justify-between items-center mb-6 mt-8 border-t border-gray-200 dark:border-gray-700 pt-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Mapeamento de Colunas e Metas</h3>
+                        <button id="toggle-report-fields" class="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-300 text-3xl leading-none font-bold">
+                            +
+                        </button>
                     </div>
+                    <div id="report-fields-content" class="hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                            <div>
+                                <label for="machine-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna de Ativos/Máquinas</label>
+                                <select id="machine-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                            </div>
+                            <div>
+                                <label for="asset-name-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Nome do Bem</label>
+                                <select id="asset-name-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                            </div>
+                            <div>
+                                <label for="downtime-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna de Duração (horas)</label>
+                                <select id="downtime-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                            </div>
+                            <div>
+                                <label for="cost-center-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Linha de Produção</label>
+                                <select id="cost-center-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                            </div>
+                            <div>
+                                <label for="service-order-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Ordem de Serviço</label>
+                                <select id="service-order-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                            </div>
+                            <div>
+                                <label for="order-title-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Título da Ordem</label>
+                                <select id="order-title-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                            </div>
+                            <div>
+                                <label for="solution-details-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Detalhes da Solução</label>
+                                <select id="solution-details-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                            </div>
+                            <div>
+                                <label for="start-date-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Data de Abertura</label>
+                                <select id="start-date-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                            </div>
+                            <div>
+                                <label for="start-time-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coluna Hora de Abertura</label>
+                                <select id="start-time-column" class="config-select mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                            </div>
+                        </div>
 
-                    <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Metas dos Indicadores</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                         <div>
-                            <label for="availability-goal-yellow" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Disp. Meta Amarela (>=)</label>
-                            <input type="number" id="availability-goal-yellow" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm" value="96" placeholder="Ex: 96">
-                        </div>
-                         <div>
-                            <label for="availability-goal-green" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Disp. Meta Verde (>=)</label>
-                            <input type="number" id="availability-goal-green" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm" value="97" placeholder="Ex: 97">
-                        </div>
-                        <div>
-                            <label for="mtbf-goal" class="block text-sm font-medium text-gray-700 dark:text-gray-300">MTBF Meta (>=)</label>
-                            <input type="number" id="mtbf-goal" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm" value="90" placeholder="Ex: 90">
-                        </div>
-                        <div>
-                            <label for="mttr-goal" class="block text-sm font-medium text-gray-700 dark:text-gray-300">MTTR Meta (<=)</label>
-                            <input type="number" id="mttr-goal" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm" value="2" placeholder="Ex: 2">
+                        <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Metas dos Indicadores</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                            <div>
+                                <label for="availability-goal-yellow" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Disp. Meta Amarela (>=)</label>
+                                <input type="number" id="availability-goal-yellow" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm" value="96" placeholder="Ex: 96">
+                            </div>
+                            <div>
+                                <label for="availability-goal-green" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Disp. Meta Verde (>=)</label>
+                                <input type="number" id="availability-goal-green" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm" value="97" placeholder="Ex: 97">
+                            </div>
+                            <div>
+                                <label for="mtbf-goal" class="block text-sm font-medium text-gray-700 dark:text-gray-300">MTBF Meta (>=)</label>
+                                <input type="number" id="mtbf-goal" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm" value="90" placeholder="Ex: 90">
+                            </div>
+                            <div>
+                                <label for="mttr-goal" class="block text-sm font-medium text-gray-700 dark:text-gray-300">MTTR Meta (<=)</label>
+                                <input type="number" id="mttr-goal" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm" value="2" placeholder="Ex: 2">
+                            </div>
                         </div>
                     </div>
 
@@ -287,7 +296,7 @@
                             </div>
                         </div>
                         <div>
-                             <h4 class="text-lg font-semibold text-center mb-2 text-gray-800 dark:text-gray-200">Indicadores por Centro de Custo</h4>
+                            <h4 class="text-lg font-semibold text-center mb-2 text-gray-800 dark:text-gray-200">Indicadores por Centro de Custo</h4>
                             <div id="kpi-chart-buttons-cc" class="flex justify-center flex-wrap gap-4">
                                 <button data-kpi="availability" data-group-by="costCenter" class="kpi-chart-btn px-4 py-2 text-sm font-medium rounded-md bg-teal-600 hover:bg-teal-700 text-white">Gráfico Disponibilidade</button>
                                 <button data-kpi="mttr" data-group-by="costCenter" class="kpi-chart-btn px-4 py-2 text-sm font-medium rounded-md bg-teal-600 hover:bg-teal-700 text-white">Gráfico MTTR</button>
@@ -365,7 +374,7 @@
             <input type="text" id="new-category-name" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm" placeholder="Nome da nova categoria">
         </div>
         <div class="mt-4 flex justify-end space-x-2">
-             <button id="new-category-cancel" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancelar</button>
+            <button id="new-category-cancel" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancelar</button>
             <button id="new-category-create" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Criar</button>
         </div>
     </div>
@@ -380,7 +389,7 @@
                 <button data-rank="worst" data-limit="5" class="kpi-filter-btn px-3 py-1 text-xs font-medium rounded-md bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200">Top 5 Piores</button>
                 <button data-rank="best" data-limit="5" class="kpi-filter-btn px-3 py-1 text-xs font-medium rounded-md bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200">Top 5 Melhores</button>
                 <button data-rank="worst" data-limit="10" class="kpi-filter-btn px-3 py-1 text-xs font-medium rounded-md bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200">Top 10 Piores</button>
-                 <button data-rank="best" data-limit="10" class="kpi-filter-btn px-3 py-1 text-xs font-medium rounded-md bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200">Top 10 Melhores</button>
+                <button data-rank="best" data-limit="10" class="kpi-filter-btn px-3 py-1 text-xs font-medium rounded-md bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200">Top 10 Melhores</button>
                 <button data-rank="all" class="kpi-filter-btn px-3 py-1 text-xs font-medium rounded-md bg-indigo-600 text-white">Todos</button>
             </div>
             <div class="mt-2 px-7 py-3">
@@ -399,10 +408,10 @@
 
 <div id="solution-guide-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
     <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white dark:bg-gray-800">
-         <div class="mt-3">
+        <div class="mt-3">
             <div class="relative text-center mb-4">
                 <h3 id="solution-guide-title" class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Guia de Soluções com IA</h3>
-                 <div class="absolute top-0 right-0">
+                <div class="absolute top-0 right-0">
                     <button id="print-solution-guide-button" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" title="Imprimir Guia">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v3a2 2 0 002 2h6a2 2 0 002-2v-3h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm3 0h4v3H8V4zm6 8H6v4h8v-4z" clip-rule="evenodd"></path></svg>
                     </button>
@@ -487,6 +496,8 @@
             menuToggleBtn: document.getElementById('menu-toggle-btn'),
             sidebar: document.getElementById('sidebar'),
             sidebarOverlay: document.getElementById('sidebar-overlay'),
+            toggleReportFieldsButton: document.getElementById('toggle-report-fields'),
+            reportFieldsContent: document.getElementById('report-fields-content'),
         };
 
         let jsonData = null;
@@ -612,10 +623,19 @@
                 option.textContent = year;
                 domElements.yearSelect.appendChild(option);
             }
+            if (domElements.yearSelect.value) {
+                populateMonthSelector();
+                populateWeekSelector();
+            }
         }
 
         function populateMonthSelector() {
             domElements.monthSelect.innerHTML = '<option value="">Mês (Todos)</option>';
+            const year = parseInt(domElements.yearSelect.value);
+            if (isNaN(year)) {
+                domElements.weekSelect.innerHTML = '<option value="">Semana (Todas)</option>';
+                return; 
+            }
             const months = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
             months.forEach((month, index) => {
                 const option = document.createElement('option');
@@ -623,27 +643,39 @@
                 option.textContent = month;
                 domElements.monthSelect.appendChild(option);
             });
+            if (domElements.monthSelect.value) {
+                populateWeekSelector();
+            }
         }
 
         function populateWeekSelector() {
             domElements.weekSelect.innerHTML = '<option value="">Semana (Todas)</option>';
             const year = parseInt(domElements.yearSelect.value);
-            const month = parseInt(domElements.monthSelect.value);
+            const month = parseInt(domElements.monthSelect.value); 
             if (isNaN(year) || isNaN(month)) return;
-            const startDate = new Date(Date.UTC(year, month, 1));
-            const endDate = new Date(Date.UTC(year, month + 1, 0));
-            let current = new Date(startDate);
-            while (current <= endDate) {
+
+            const firstDayOfMonth = new Date(Date.UTC(year, month, 1));
+            const lastDayOfMonth = new Date(Date.UTC(year, month + 1, 0));
+
+            let current = new Date(firstDayOfMonth);
+            while (current <= lastDayOfMonth) {
                 let weekStart = new Date(current);
                 weekStart.setUTCDate(weekStart.getUTCDate() - weekStart.getUTCDay());
+                
                 let weekEnd = new Date(weekStart);
                 weekEnd.setUTCDate(weekEnd.getUTCDate() + 6);
+
+                const displayWeekStart = new Date(Math.max(weekStart.getTime(), firstDayOfMonth.getTime()));
+                const displayWeekEnd = new Date(Math.min(weekEnd.getTime(), lastDayOfMonth.getTime()));
+
                 const option = document.createElement('option');
-                const startStr = weekStart.toLocaleDateString('pt-BR', { timeZone: 'UTC', day: '2-digit', month: '2-digit' });
-                const endStr = weekEnd.toLocaleDateString('pt-BR', { timeZone: 'UTC', day: '2-digit', month: '2-digit' });
+                const startStr = displayWeekStart.toLocaleDateString('pt-BR', { timeZone: 'UTC', day: '2-digit', month: '2-digit' });
+                const endStr = displayWeekEnd.toLocaleDateString('pt-BR', { timeZone: 'UTC', day: '2-digit', month: '2-digit' });
+                
                 option.value = `${toYYYYMMDD(weekStart)}|${toYYYYMMDD(weekEnd)}`;
                 option.textContent = `Semana de ${startStr} a ${endStr}`;
                 domElements.weekSelect.appendChild(option);
+                
                 current.setUTCDate(current.getUTCDate() + 7);
             }
         }
@@ -652,31 +684,36 @@
             const year = domElements.yearSelect.value;
             const month = domElements.monthSelect.value;
             const week = domElements.weekSelect.value;
+
+            domElements.reportStartDateInput.value = '';
+            domElements.reportEndDateInput.value = '';
+
             if (week) {
                 const [start, end] = week.split('|');
                 domElements.reportStartDateInput.value = start;
                 domElements.reportEndDateInput.value = end;
-            } else if (month && year) {
-                const startDate = new Date(Date.UTC(year, month, 1));
-                const endDate = new Date(Date.UTC(year, parseInt(month) + 1, 0));
+            } else if (month !== "" && year !== "") {
+                const startDate = new Date(Date.UTC(parseInt(year), parseInt(month), 1));
+                const endDate = new Date(Date.UTC(parseInt(year), parseInt(month) + 1, 0));
                 domElements.reportStartDateInput.value = toYYYYMMDD(startDate);
                 domElements.reportEndDateInput.value = toYYYYMMDD(endDate);
-            } else if (year) {
+            } else if (year !== "") {
                 domElements.reportStartDateInput.value = `${year}-01-01`;
                 domElements.reportEndDateInput.value = `${year}-12-31`;
-            } else {
-                 if (globalMinDate && globalMaxDate) {
+            } else { 
+                if (globalMinDate && globalMaxDate) {
                     domElements.reportStartDateInput.value = toYYYYMMDD(globalMinDate);
                     domElements.reportEndDateInput.value = toYYYYMMDD(globalMaxDate);
                 }
             }
-            if (new Date(domElements.reportStartDateInput.value) < globalMinDate) {
-                 domElements.reportStartDateInput.value = toYYYYMMDD(globalMinDate);
+
+            if (globalMinDate && domElements.reportStartDateInput.value && new Date(domElements.reportStartDateInput.value) < globalMinDate) {
+                domElements.reportStartDateInput.value = toYYYYMMDD(globalMinDate);
             }
-            if (new Date(domElements.reportEndDateInput.value) > globalMaxDate) {
+            if (globalMaxDate && domElements.reportEndDateInput.value && new Date(domElements.reportEndDateInput.value) > globalMaxDate) {
                 domElements.reportEndDateInput.value = toYYYYMMDD(globalMaxDate);
             }
-            populateWeekSelector();
+
             calculateAndSetTotalHours();
         }
 
@@ -684,6 +721,7 @@
             domElements.yearSelect.value = "";
             domElements.monthSelect.value = "";
             domElements.weekSelect.value = "";
+            populateYearSelector();
             handleDateFilterChange();
         }
         
@@ -715,9 +753,9 @@
                 ['reportStartDateInput', 'reportEndDateInput'].forEach(id => {
                     domElements[id].min = ''; domElements[id].max = ''; domElements[id].value = '';
                 });
-                clearFilters();
-                populateYearSelector();
-                populateMonthSelector();
+                domElements.yearSelect.innerHTML = '<option value="">Ano (Todos)</option>';
+                domElements.monthSelect.innerHTML = '<option value="">Mês (Todos)</option>';
+                domElements.weekSelect.innerHTML = '<option value="">Semana (Todas)</option>';
                 populateProductionLineFilter();
             };
             if (!startDateCol || !jsonData) {
@@ -741,8 +779,9 @@
                 domElements.reportEndDateInput.min = minStr;
                 domElements.reportEndDateInput.max = maxStr;
                 populateYearSelector();
-                populateMonthSelector();
-                clearFilters();
+                domElements.reportStartDateInput.value = minStr;
+                domElements.reportEndDateInput.value = maxStr;
+                calculateAndSetTotalHours();
             } else {
                 resetAll();
                 showMessage('Não foi possível encontrar datas válidas na coluna selecionada.', 'warning');
@@ -920,7 +959,7 @@
         }
 
         function sortAndRenderResults() {
-             const { column, direction } = sortState;
+            const { column, direction } = sortState;
             lastResults.sort((a, b) => {
                 const valA = a[column]; const valB = b[column];
                 if (valA instanceof Date) { return direction === 'asc' ? valA - valB : valB - valA; }
@@ -1066,6 +1105,46 @@
             </svg>`;
         }
         
+        /**
+         * A robust fetch wrapper that handles API calls with exponential backoff for retries.
+         * @param {string} apiUrl The API endpoint to call.
+         * @param {object} payload The JSON payload to send.
+         * @param {number} maxRetries The maximum number of retry attempts.
+         * @returns {Promise<object>} The JSON response from the API.
+         */
+        async function fetchWithBackoff(apiUrl, payload, maxRetries = 5) {
+            let delay = 1000; // Start with 1 second
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        return await response.json();
+                    }
+
+                    // Don't retry on client-side errors (4xx), except for 429 (Too Many Requests)
+                    if (response.status >= 400 && response.status < 500 && response.status !== 429) {
+                        const errorData = await response.json().catch(() => ({}));
+                        const errorMessage = errorData.error?.message || response.statusText;
+                        throw new Error(`Erro do Cliente: ${response.status} ${errorMessage}`);
+                    }
+                    
+                    // Do not log retry attempts to the user console. This is for internal debugging.
+
+                } catch (error) {
+                    if (i === maxRetries - 1) throw error; // Re-throw the last error
+                }
+
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2; // Double the delay for the next retry
+            }
+            throw new Error(`A chamada à API falhou após ${maxRetries} tentativas.`);
+        }
+
         async function analyzeWithGemini(ordersData, buttonElement) {
             buttonElement.disabled = true;
             buttonElement.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-700 dark:text-gray-300 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
@@ -1074,9 +1153,8 @@
             
             const prompt = `Analise a seguinte lista de ordens de manutenção (com 'title', 'downtime' e 'originalId'). Agrupe problemas que são semanticamente similares. Para cada grupo, crie um "problemGroup" curto. Calcule a "frequency" (número de ocorrências) e "totalHours" (soma dos downtimes) para cada grupo. Para cada grupo, retorne também um array "orderIds" contendo os 'originalId' das ordens que pertencem a ele. O resultado final deve ser um array de objetos JSON. Exemplo de agrupamento: "motor quebrou" e "falha no motor principal" devem ser agrupados em "Falha de Motor". Dados: ${JSON.stringify(dataWithIds)}`;
             
-            let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
             const payload = {
-                contents: chatHistory,
+                contents: [{ role: "user", parts: [{ text: prompt }] }],
                 generationConfig: {
                     responseMimeType: "application/json",
                     responseSchema: {
@@ -1095,22 +1173,12 @@
                 }
             };
             
-            const apiKey = "AIzaSyDO47ckHgjPh1okBYn6cu605TEGNHxu29w";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            const apiKey = "AIzaSyBdI6JtAXXzXcS4xLmZeHACHgIoTUewJ4Q"; // Leave as-is
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
             try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                const result = await fetchWithBackoff(apiUrl, payload);
                 
-                if (!response.ok) {
-                    throw new Error(`Erro na API: ${response.statusText}`);
-                }
-
-                const result = await response.json();
-
                 if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts.length > 0) {
                     const text = result.candidates[0].content.parts[0].text;
                     return JSON.parse(text);
@@ -1123,7 +1191,7 @@
                 return null;
             } finally {
                 buttonElement.disabled = false;
-                 buttonElement.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v0A2.5 2.5 0 0 1 9.5 7v0A2.5 2.5 0 0 1 7 9.5v0A2.5 2.5 0 0 1 9.5 12v0A2.5 2.5 0 0 1 7 14.5v0A2.5 2.5 0 0 1 9.5 17v0A2.5 2.5 0 0 1 7 19.5v0a2.5 2.5 0 0 1 2.5 2.5"/><path d="M14.5 2a2.5 2.5 0 0 0-2.5 2.5v0A2.5 2.5 0 0 0 14.5 7v0A2.5 2.5 0 0 0 17 9.5v0A2.5 2.5 0 0 0 14.5 12v0A2.5 2.5 0 0 0 17 14.5v0A2.5 2.5 0 0 0 14.5 17v0A2.5 2.5 0 0 0 17 19.5v0a2.5 2.5 0 0 0-2.5 2.5"/></svg>`;
+                buttonElement.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v0A2.5 2.5 0 0 1 9.5 7v0A2.5 2.5 0 0 1 7 9.5v0A2.5 2.5 0 0 1 9.5 12v0A2.5 2.5 0 0 1 7 14.5v0A2.5 2.5 0 0 1 9.5 17v0A2.5 2.5 0 0 1 7 19.5v0a2.5 2.5 0 0 1 2.5 2.5"/><path d="M14.5 2a2.5 2.5 0 0 0-2.5 2.5v0A2.5 2.5 0 0 0 14.5 7v0A2.5 2.5 0 0 0 17 9.5v0A2.5 2.5 0 0 0 14.5 12v0A2.5 2.5 0 0 0 17 14.5v0A2.5 2.5 0 0 0 14.5 17v0A2.5 2.5 0 0 0 17 19.5v0a2.5 2.5 0 0 0-2.5 2.5"/></svg>`;
             }
         }
         
@@ -1287,7 +1355,7 @@
             let detailsHTML = `
                 <div class="flex justify-between items-center mb-2 border-t border-gray-200 dark:border-gray-700 pt-4">
                     <h4 class="text-md font-semibold text-gray-800 dark:text-gray-200">Detalhes para: ${problemGroup}</h4>
-                     <button class="solution-guide-button text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-300 p-1 rounded-md" data-problem-group="${problemGroup}" title="Gerar Guia de Soluções para este Problema">
+                    <button class="solution-guide-button text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-300 p-1 rounded-md" data-problem-group="${problemGroup}" title="Gerar Guia de Soluções para este Problema">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 7.5h.01M8.25 10.5h.01M8.25 13.5h.01M15.75 7.5h.01M15.75 10.5h.01M15.75 13.5h.01" />
@@ -1305,11 +1373,11 @@
                     </thead>
                     <tbody class="text-gray-700 dark:text-gray-300">
                         ${relevantOrders.map((order) => {
-                           const originalIndex = machineData.orders.findIndex(o => o.serviceOrder === order.serviceOrder && o.title === order.title && o.downtime === order.downtime);
-                           return `<tr class="border-b border-gray-200 dark:border-gray-700 draggable-row" draggable="true" data-order-id="${originalIndex}">
-                                <td class="px-2 py-1">${order.serviceOrder}</td>
-                                <td class="px-2 py-1">${order.title}</td>
-                                <td class="px-2 py-1">${formatDateTime(order.startDateTime)}</td>
+                            const originalIndex = machineData.orders.findIndex(o => o.serviceOrder === order.serviceOrder && o.title === order.title && o.downtime === order.downtime);
+                            return `<tr class="border-b border-gray-200 dark:border-gray-700 draggable-row" draggable="true" data-order-id="${originalIndex}">
+                                <td>${order.serviceOrder}</td>
+                                <td>${order.title}</td>
+                                <td>${formatDateTime(order.startDateTime)}</td>
                                 <td class="px-2 py-1 text-right">${order.downtime.toFixed(2)}</td>
                             </tr>`
                         }).join('')}
@@ -1371,10 +1439,13 @@
                         <td class="px-2 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${formatDate(res.lastStopTime)}</td>
                     </tr>
                     
-                    <tr class="details-row details-for-${machineIdSafe} bg-gray-50 dark:bg-gray-900"><td colspan="10" class="p-0"><div class="p-4">
+                    <tr class="details-row details-for-${machineIdSafe} bg-gray-50 dark:bg-gray-900"><td colspan="11" class="p-0"><div class="p-4">
                         <div class="flex justify-between items-center mb-2">
                             <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Detalhes das Paradas (${res.orders.length})</h4>
                             <div class="flex items-center space-x-2">
+                                <button class="export-excel-button text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 p-1 rounded-md" data-machine-id-for-excel="${res.machineId}" title="Exportar para Excel">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                </button>
                                 <button class="print-button text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-300 p-1 rounded-md" data-machine-id-to-print="${res.machineId}" title="Imprimir Relatório da Máquina">
                                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v3a2 2 0 002 2h6a2 2 0 002-2v-3h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm3 0h4v3H8V4zm6 8H6v4h8v-4z" clip-rule="evenodd"></path></svg>
                                 </button>
@@ -1439,6 +1510,50 @@
                     }
                 });
             });
+            // Novo event listener para o botão de exportar Excel
+            document.querySelectorAll('.export-excel-button').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const machineId = event.currentTarget.dataset.machineIdForExcel;
+                    exportMachineDetailsToExcel(machineId);
+                });
+            });
+        }
+        
+        // Nova função para exportar os detalhes da máquina para Excel
+        function exportMachineDetailsToExcel(machineId) {
+            const machineData = lastResults.find(res => String(res.machineId) === String(machineId));
+            if (!machineData) {
+                showMessage('Dados da máquina não encontrados para exportação.', 'error');
+                return;
+            }
+
+            const formatDateTime = (date) => (!date || isNaN(date)) ? 'N/A' : date.toLocaleString('pt-BR', { timeZone: 'UTC' });
+
+            // 1. Prepara os dados para a planilha
+            const dataForSheet = machineData.orders.map(order => ({
+                'OS': order.serviceOrder,
+                'Título': order.title,
+                'Data/Hora Abertura': formatDateTime(order.startDateTime),
+                'Duração (h)': order.downtime
+            }));
+
+            // 2. Cria a planilha
+            const ws = XLSX.utils.json_to_sheet(dataForSheet);
+
+            // Opcional: Ajusta a largura das colunas
+            ws['!cols'] = [
+                { wch: 15 }, // OS
+                { wch: 50 }, // Título
+                { wch: 20 }, // Data/Hora Abertura
+                { wch: 15 }  // Duração (h)
+            ];
+            
+            // 3. Cria o workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Detalhes Paradas');
+
+            // 4. Inicia o download
+            XLSX.writeFile(wb, `Detalhes_Paradas_${machineId}.xlsx`);
         }
         
         function addDragAndDropListeners() {
@@ -1463,7 +1578,7 @@
                     const droppedIndex = droppedOnElements[0].index;
                     const destinationGroup = paretoChartInstance.data.labels[droppedIndex];
                     updateParetoData(draggedItemData.orderId, destinationGroup);
-                    draggedItemData = null; // Limpa após o uso
+                    draggedItemData = null;
                 }
             });
             
@@ -1554,16 +1669,16 @@
             if (kpiChartInstance) {
                 kpiChartInstance.destroy();
             }
-        
+            
             domElements.kpiFilterControls.dataset.groupBy = groupBy; 
-        
+            
             const isDarkMode = document.documentElement.classList.contains('dark');
             const textColor = isDarkMode ? '#E5E7EB' : '#1F2937';
             const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-        
+            
             let chartTitle, goal, higherIsBetter;
             let sortedData = [...data];
-        
+            
             switch(kpiType) {
                 case 'availability':
                     chartTitle = 'Gráfico Disponibilidade';
@@ -1581,21 +1696,22 @@
                     higherIsBetter = true;
                     break;
             }
-        
+            
+            if (rank === 'best') {
+                if (higherIsBetter) sortedData.sort((a, b) => b[kpiType] - a[kpiType]);
+                else sortedData.sort((a, b) => a[kpiType] - b[kpiType]);
+            } else { 
+                if (higherIsBetter) sortedData.sort((a, b) => a[kpiType] - b[kpiType]);
+                else sortedData.sort((a, b) => b[kpiType] - a[kpiType]);
+            }
+
             if (rank !== 'all' && limit) {
-                if (rank === 'best') {
-                    if (higherIsBetter) sortedData.sort((a, b) => b[kpiType] - a[kpiType]);
-                    else sortedData.sort((a, b) => a[kpiType] - b[kpiType]); 
-                } else { // 'worst'
-                     if (higherIsBetter) sortedData.sort((a, b) => a[kpiType] - b[kpiType]);
-                    else sortedData.sort((a, b) => b[kpiType] - a[kpiType]);
-                }
                 sortedData = sortedData.slice(0, limit);
             }
-        
+            
             const labels = sortedData.map(res => res.label);
             const values = sortedData.map(res => parseFloat(res[kpiType].toFixed(2)));
-        
+            
             const backgroundColors = values.map(value => {
                 if (higherIsBetter) {
                     return value >= goal ? 'rgba(34, 197, 94, 0.8)' : 'rgba(239, 68, 68, 0.8)';
@@ -1725,21 +1841,12 @@
             Dados: ${JSON.stringify(problemSolutionPairs)}
             `;
 
-            let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-            const payload = { contents: chatHistory };
-            const apiKey = "AIzaSyDO47ckHgjPh1okBYn6cu605TEGNHxu29w"; 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+            const apiKey = "AIzaSyBdI6JtAXXzXcS4xLmZeHACHgIoTUewJ4Q"; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
             try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                if (!response.ok) throw new Error(`Erro na API: ${response.statusText}`);
-                
-                const result = await response.json();
+                const result = await fetchWithBackoff(apiUrl, payload);
                 
                 if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts.length > 0) {
                     const guideHtml = result.candidates[0].content.parts[0].text;
@@ -1774,32 +1881,88 @@
             activeLink.classList.add('nav-active');
         }
 
-        async function getChatbotResponse(question) {
-            if (!jsonData) {
-                showMessage("Por favor, carregue uma planilha de dados na aba 'Analisador' primeiro.", 'warning');
-                return "Por favor, carregue os dados primeiro.";
+        async function generateContextualPrompt(question) {
+            if (!lastResults || lastResults.length === 0) {
+                return {
+                    prompt: `O usuário perguntou: "${question}". Não há dados de manutenção carregados. Por favor, instrua o usuário a carregar uma planilha na aba 'Analisador' e executar a análise primeiro.`,
+                    hasData: false
+                };
             }
 
-            const apiKey = "AIzaSyDO47ckHgjPh1okBYn6cu605TEGNHxu29w";
-            const context = JSON.stringify(jsonData); // Envia a planilha inteira para o contexto
-            const prompt = `Você é um especialista em manutenção sênior. Sua base de conhecimento são os seguintes dados de manutenção em formato JSON: ${context}. Responda à pergunta do usuário de forma concisa e focada, utilizando os dados fornecidos. A pergunta é: "${question}"`;
+            let foundMachineId = null;
+            for (const res of lastResults) {
+                if (question.toLowerCase().includes(String(res.machineId).toLowerCase())) {
+                    foundMachineId = res.machineId;
+                    break;
+                }
+            }
 
-            let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-            const payload = { contents: chatHistory };
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            let contextData;
+            let basePrompt = "Você é um especialista em manutenção sênior e um chatbot de análise de dados. Responda à pergunta do usuário de forma concisa e focada, utilizando apenas os dados fornecidos. Se a informação não estiver nos dados, diga que não pode responder com os dados atuais.";
+
+            if (foundMachineId) {
+                const machineData = lastResults.find(res => String(res.machineId) === String(foundMachineId));
+                if (machineData) {
+                    const recentOrders = machineData.orders.slice(0, 5).map(order => ({
+                        serviceOrder: order.serviceOrder,
+                        title: order.title,
+                        downtime: order.downtime.toFixed(2),
+                        startDateTime: order.startDateTime.toLocaleString('pt-BR', { timeZone: 'UTC', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                    }));
+                    contextData = {
+                        machineId: machineData.machineId,
+                        description: machineData.description,
+                        costCenter: machineData.costCenter,
+                        totalDowntime: machineData.totalDowntime.toFixed(2),
+                        totalEvents: machineData.totalEvents,
+                        availability: machineData.availability.toFixed(2),
+                        mtbf: machineData.mtbf.toFixed(2),
+                        mttr: machineData.mttr.toFixed(2),
+                        recentOrders: recentOrders
+                    };
+                    basePrompt += `\n\nContexto (dados do ativo ${foundMachineId}): ${JSON.stringify(contextData)}.`;
+                } else {
+                    contextData = null;
+                    basePrompt += `\n\nNão encontrei dados para o ativo "${foundMachineId}" no período atual ou nos dados processados.`;
+                }
+            } else {
+                const overallKpis = {
+                    totalMachinesAnalyzed: lastResults.length,
+                    overallAvailability: (lastResults.reduce((sum, res) => sum + res.availability, 0) / lastResults.length).toFixed(2),
+                    overallMtbf: (lastResults.reduce((sum, res) => sum + res.mtbf, 0) / lastResults.length).toFixed(2),
+                    overallMttr: (lastResults.reduce((sum, res) => sum + res.mttr, 0) / lastResults.length).toFixed(2),
+                    top5DowntimeMachines: lastResults.sort((a,b) => b.totalDowntime - a.totalDowntime).slice(0,5).map(m => `${m.machineId} (${m.totalDowntime.toFixed(2)}h)`).join(', ')
+                };
+                basePrompt += `\n\nContexto (dados gerais da análise): ${JSON.stringify(overallKpis)}.`;
+            }
+
+            return {
+                prompt: `${basePrompt}\n\nPergunta do usuário: "${question}"`,
+                hasData: true
+            };
+        }
+
+        async function getChatbotResponse(question) {
+            const { prompt: contextualPrompt, hasData } = await generateContextualPrompt(question);
+
+            if (!hasData) {
+                return contextualPrompt;
+            }
+
+            const apiKey = "AIzaSyBdI6JtAXXzXcS4xLmZeHACHgIoTUewJ4Q";
+            const payload = { contents: [{ role: "user", parts: [{ text: contextualPrompt }] }] };
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
             try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (!response.ok) throw new Error(`Erro na API: ${response.statusText}`);
-                const result = await response.json();
-                return result.candidates[0].content.parts[0].text;
+                const result = await fetchWithBackoff(apiUrl, payload);
+                if (result.candidates && result.candidates.length > 0 && result.candidates[0].content && result.candidates[0].content.parts.length > 0) {
+                    return result.candidates[0].content.parts[0].text;
+                } else {
+                    return "Desculpe, não consegui gerar uma resposta com os dados fornecidos.";
+                }
             } catch (error) {
                 console.error("Erro na API do Chatbot:", error);
-                return "Desculpe, ocorreu um erro ao processar sua pergunta.";
+                return `Desculpe, ocorreu um erro ao processar sua pergunta: ${error.message}.`;
             }
         }
 
@@ -1814,10 +1977,11 @@
 
             domElements.chatInput.value = '';
             domElements.chatSendBtn.disabled = true;
-            
+            domElements.chatInput.placeholder = 'Aguarde a resposta...';
+
             const thinkingDiv = document.createElement('div');
-            thinkingDiv.className = 'p-3 rounded-lg bot-message chat-message text-gray-500 dark:text-gray-400';
-            thinkingDiv.textContent = 'Pensando...';
+            thinkingDiv.className = 'p-3 rounded-lg bot-message chat-message text-gray-500 dark:text-gray-400 flex items-center';
+            thinkingDiv.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-700 dark:text-gray-300 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Pensando...`;
             domElements.chatContainer.appendChild(thinkingDiv);
             domElements.chatContainer.scrollTop = domElements.chatContainer.scrollHeight;
 
@@ -1831,9 +1995,9 @@
 
             domElements.chatContainer.scrollTop = domElements.chatContainer.scrollHeight;
             domElements.chatSendBtn.disabled = false;
+            domElements.chatInput.placeholder = 'Pergunte sobre uma máquina ou problema...';
         }
 
-        // INÍCIO DA CORREÇÃO: Centralização dos listeners de eventos
         function initializeEventListeners() {
             domElements.themeToggleBtn.addEventListener('click', () => {
                 document.documentElement.classList.toggle('dark');
@@ -1859,9 +2023,9 @@
             });
 
             domElements.paretoModalClose.addEventListener('click', () => {
-                 domElements.paretoModal.classList.add('hidden');
-                 domElements.paretoDetailsContainer.innerHTML = '';
-                 currentParetoData = null; 
+                domElements.paretoModal.classList.add('hidden');
+                domElements.paretoDetailsContainer.innerHTML = '';
+                currentParetoData = null; 
             });
             
             domElements.sortByHoursButton.addEventListener('click', () => {
@@ -1982,8 +2146,8 @@
                     if(groupBy === 'costCenter') {
                         handleCostCenterChartGeneration(currentKpiChartType, rank, limit);
                     } else {
-                         const assetData = lastResults.map(res => ({ ...res, label: res.machineId }));
-                         generateKpiChart(currentKpiChartType, assetData, 'asset', rank, limit);
+                        const assetData = lastResults.map(res => ({ ...res, label: res.machineId }));
+                        generateKpiChart(currentKpiChartType, assetData, 'asset', rank, limit);
                     }
                 }
             });
@@ -2080,11 +2244,36 @@
                 domElements.newCategoryNameInput.value = '';
                 draggedItemData = null;
             });
+
+            domElements.yearSelect.addEventListener('change', () => {
+                domElements.monthSelect.value = ""; 
+                domElements.weekSelect.value = ""; 
+                populateMonthSelector(); 
+                populateWeekSelector(); 
+                handleDateFilterChange(); 
+            });
+
+            domElements.monthSelect.addEventListener('change', () => {
+                domElements.weekSelect.value = ""; 
+                populateWeekSelector(); 
+                handleDateFilterChange(); 
+            });
+
+            domElements.weekSelect.addEventListener('change', handleDateFilterChange);
+
+            domElements.clearFiltersButton.addEventListener('click', clearFilters);
+
+            domElements.toggleReportFieldsButton.addEventListener('click', () => {
+                const isHidden = domElements.reportFieldsContent.classList.contains('hidden');
+                domElements.reportFieldsContent.classList.toggle('hidden');
+                domElements.toggleReportFieldsButton.textContent = isHidden ? '−' : '+';
+            });
         }
 
-        // Inicializa todos os listeners de eventos quando o DOM estiver pronto
-        document.addEventListener('DOMContentLoaded', initializeEventListeners);
-        // FIM DA CORREÇÃO
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeEventListeners();
+            applyTheme();
+        });
     </script>
 </body>
 </html>
