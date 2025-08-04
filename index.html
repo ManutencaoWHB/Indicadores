@@ -2220,7 +2220,7 @@
                                 size: 10,
                                 weight: 'bold',
                             },
-                            formatter: (value) => parseFloat(value).toFixed(1) + 'h',
+                            formatter: (value) => parseFloat(value).toFixed(1),
                             rotation: -90,
                         },
                         title: {
@@ -2279,7 +2279,14 @@
             });
 
             const sortedDates = Object.keys(dailyData).sort();
-            const labels = sortedDates.map(date => new Date(date + 'T00:00:00Z').toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit', timeZone: 'UTC'}));
+            const weekdays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+            const labels = sortedDates.map(dateStr => {
+                const date = new Date(dateStr + 'T00:00:00Z');
+                const dayOfMonth = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', timeZone: 'UTC' });
+                const dayOfWeek = weekdays[date.getUTCDay()];
+                return [dayOfMonth, dayOfWeek];
+            });
+
             const downtimeData = sortedDates.map(date => dailyData[date].totalDowntime);
             const orderCountData = sortedDates.map(date => dailyData[date].orderCount);
 
@@ -2335,7 +2342,7 @@
                         datalabels: {
                             display: true,
                             color: textColor,
-                            font: { size: 10, weight: 'bold' },
+                            font: { size: 12, weight: 'bold' },
                             formatter: (value) => parseFloat(value).toFixed(1),
                              rotation: -90,
                              align: 'end',
