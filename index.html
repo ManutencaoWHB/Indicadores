@@ -2280,23 +2280,43 @@
 
             const sortedDates = Object.keys(dailyData).sort();
             const weekdays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-            const labels = sortedDates.map(dateStr => {
-                const date = new Date(dateStr + 'T00:00:00Z');
-                const dayOfMonth = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', timeZone: 'UTC' });
-                const dayOfWeek = weekdays[date.getUTCDay()];
-                return [dayOfMonth, dayOfWeek];
-            });
+            
+            const totalDowntime = sortedDates.reduce((sum, date) => sum + dailyData[date].totalDowntime, 0);
+            const totalOrders = sortedDates.reduce((sum, date) => sum + dailyData[date].orderCount, 0);
+            const numberOfDays = sortedDates.length;
+            const averageDowntime = numberOfDays > 0 ? totalDowntime / numberOfDays : 0;
+            const averageOrders = numberOfDays > 0 ? totalOrders / numberOfDays : 0;
 
-            const downtimeData = sortedDates.map(date => dailyData[date].totalDowntime);
-            const orderCountData = sortedDates.map(date => dailyData[date].orderCount);
+            const labels = [
+                ["Soma", "Horas"],
+                ["Média", "Horas"],
+                ["Soma", "Ordens"],
+                ["Média", "Ordens"],
+                ...sortedDates.map(dateStr => {
+                    const date = new Date(dateStr + 'T00:00:00Z');
+                    const dayOfMonth = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', timeZone: 'UTC' });
+                    const dayOfWeek = weekdays[date.getUTCDay()];
+                    return [dayOfMonth, dayOfWeek];
+                })
+            ];
 
-            const totalDowntimeSum = downtimeData.reduce((sum, item) => sum + item, 0);
-            let cumulativePercentage = 0;
-            const paretoLineData = downtimeData.map(downtime => {
-                cumulativePercentage += (downtime / totalDowntimeSum) * 100;
-                return cumulativePercentage;
-            });
-
+            const downtimeData = [
+                0, // Placeholder for Soma Horas
+                averageDowntime,
+                0,
+                0,
+                ...sortedDates.map(date => dailyData[date].totalDowntime)
+            ];
+            const orderCountData = [
+                0,
+                0,
+                0, // Placeholder for Soma Ordens
+                averageOrders,
+                ...sortedDates.map(date => dailyData[date].orderCount)
+            ];
+            const totalDowntimeData = [totalDowntime, 0, 0, 0, ...Array(sortedDates.length).fill(0)];
+            const totalOrdersData = [0, 0, totalOrders, 0, ...Array(sortedDates.length).fill(0)];
+            
             const isDarkMode = document.documentElement.classList.contains('dark');
             const textColor = isDarkMode ? '#E5E7EB' : '#1F2937';
             const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
@@ -2307,33 +2327,35 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Horas Paradas',
+                        label: 'Horas Paradas (Diário/Média)',
                         data: downtimeData,
                         backgroundColor: 'rgba(219, 39, 119, 0.8)', // Pink
                         yAxisID: 'y',
                     }, {
-                        label: 'Quantidade de Ordens',
+                        label: 'Quantidade de Ordens (Diário/Média)',
                         data: orderCountData,
                         backgroundColor: 'rgba(14, 165, 233, 0.8)', // Sky blue
                         yAxisID: 'y',
                     }, {
-                        label: 'Percentual Acumulado (Horas)',
-                        data: paretoLineData,
-                        type: 'line',
-                        borderColor: 'rgba(234, 179, 8, 1)',
-                        backgroundColor: 'rgba(234, 179, 8, 0.2)',
-                        fill: false,
-                        yAxisID: 'y1',
-                        tension: 0.1,
-                        datalabels: { display: false }
+                        label: 'Soma Horas Paradas',
+                        data: totalDowntimeData,
+                        backgroundColor: 'rgba(236, 72, 153, 0.8)',
+                        yAxisID: 'y_total',
+                    }, {
+                        label: 'Soma Ordens',
+                        data: totalOrdersData,
+                        backgroundColor: 'rgba(56, 189, 248, 0.8)',
+                        yAxisID: 'y_total',
                     }]
                 },
                 options: {
                     onClick: (event, elements) => {
                         if (elements.length > 0) {
                             const index = elements[0].index;
-                            const dateStr = sortedDates[index];
-                            displayDailyDetails(dateStr);
+                            if (index >= 4) { // Only trigger for daily bars
+                                const dateStr = sortedDates[index - 4];
+                                displayDailyDetails(dateStr);
+                            }
                         }
                     },
                     responsive: true,
@@ -2343,14 +2365,14 @@
                             display: true,
                             color: textColor,
                             font: { size: 12, weight: 'bold' },
-                            formatter: (value) => parseFloat(value).toFixed(1),
+                            formatter: (value) => value > 0 ? parseFloat(value).toFixed(1) : null,
                              rotation: -90,
                              align: 'end',
                              anchor: 'end'
                         },
                         title: {
                             display: true,
-                            text: 'Pareto Diário de Horas Paradas e Quantidade de Ordens',
+                            text: 'Pareto Diário de Paradas e Ordens',
                             color: textColor,
                             font: { size: 16 }
                         },
@@ -2363,18 +2385,17 @@
                             type: 'linear',
                             display: true,
                             position: 'left',
-                            title: { display: true, text: 'Horas / Quantidade', color: textColor },
+                            title: { display: true, text: 'Valores Diários e Médios', color: textColor },
                             ticks: { color: textColor },
                             grid: { color: gridColor },
                         },
-                        y1: {
+                        y_total: {
+                            beginAtZero: true,
                             type: 'linear',
                             display: true,
                             position: 'right',
-                            min: 0,
-                            max: 100,
-                            title: { display: true, text: 'Percentual Acumulado (%)', color: textColor },
-                            ticks: { color: textColor, callback: value => value.toFixed(0) + '%' },
+                            title: { display: true, text: 'Valores Totais', color: textColor },
+                            ticks: { color: textColor },
                             grid: { drawOnChartArea: false },
                         }
                     }
