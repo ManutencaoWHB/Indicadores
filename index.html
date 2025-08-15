@@ -68,7 +68,7 @@
 
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .file-input-button { background-color: #4f46e5; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 0.5rem; transition: background-color: 0.3s; }
+        .file-input-button { background-color: #4f46e5; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; transition: background-color: 0.3s; width: 100%; }
         .file-input-button:hover { background-color: #4338ca; }
         input[type="file"] { display: none; }
         th.sortable { cursor: pointer; user-select: none; }
@@ -108,31 +108,57 @@
             background-color: #3730a3; /* dark:bg-indigo-800 */
             color: white;
         }
+        .control-btn-active {
+            background-color: #4f46e5 !important;
+            color: white !important;
+        }
+        .dark .control-btn-active {
+             background-color: #3730a3 !important;
+        }
     </style>
 </head>
 <body class="antialiased bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
 
 <div class="flex h-screen bg-gray-100 dark:bg-gray-900">
     <!-- Sidebar -->
-    <div id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 shadow-md flex-shrink-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out z-40">
-        <div class="p-4 border-b dark:border-gray-700">
-            <h2 class="text-xl font-bold text-gray-900 dark:text-white">Menu Principal</h2>
+    <div id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 shadow-md flex-shrink-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out z-40 flex flex-col">
+        <div>
+            <div class="p-4 border-b dark:border-gray-700">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Menu Principal</h2>
+            </div>
+            
+            <!-- Seção de Upload movida para o topo do menu -->
+            <div class="p-4 border-b dark:border-gray-700">
+                 <label for="file-upload" class="file-input-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    <span>Carregar Planilha</span>
+                </label>
+                <input id="file-upload" type="file" accept=".xlsx, .xls, .csv">
+                <p id="file-name" class="mt-2 text-xs text-center text-gray-500 dark:text-gray-400 truncate">Nenhum arquivo.</p>
+            </div>
+
+            <nav class="mt-4">
+                <a href="#" id="nav-analyzer" class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 nav-active">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    Analisador de Indicadores
+                </a>
+                <a href="#" id="nav-dashboard" class="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    Dashboard
+                </a>
+                <a href="#" id="nav-technician" class="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Apontamento de Horas
+                </a>
+                <a href="#" id="nav-chatbot" class="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                    Chatbot da Manutenção
+                </a>
+            </nav>
         </div>
-        <nav class="mt-4">
-            <a href="#" id="nav-dashboard" class="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                Dashboard
-            </a>
-            <a href="#" id="nav-analyzer" class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 nav-active">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                Analisador de Indicadores
-            </a>
-            <a href="#" id="nav-chatbot" class="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                Chatbot da Manutenção
-            </a>
-        </nav>
-        <div class="absolute bottom-0 w-64 p-4 border-t dark:border-gray-700">
+        <div class="mt-auto p-4 border-t dark:border-gray-700">
             <button id="theme-toggle" type="button" class="w-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
                 <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
                 <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
@@ -152,7 +178,56 @@
                     <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">Dashboard de Manutenção</h1>
                 </header>
                 
-                <div id="dashboard-pareto-machine-section">
+                <div id="dashboard-filters-section" class="hidden max-w-7xl mx-auto bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-4">
+                        <div>
+                            <label for="dashboard-report-start-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Data Inicial</label>
+                            <input type="date" id="dashboard-report-start-date" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label for="dashboard-report-end-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Data Final</label>
+                            <input type="date" id="dashboard-report-end-date" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm">
+                        </div>
+                        <div class="md:col-span-2">
+                             <label class="block text-sm font-medium text-transparent">&nbsp;</label>
+                            <button id="dashboard-update-charts" class="mt-1 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md shadow-sm">Atualizar Gráficos do Dashboard</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="kpi-trend-section" class="hidden">
+                     <h2 class="text-xl font-bold text-center text-gray-800 dark:text-gray-200 mb-4">Análise de Tendência de KPIs</h2>
+                     <div class="flex justify-center flex-wrap gap-2 mb-4">
+                        <div id="kpi-trend-kpi-controls" class="flex justify-center p-1 bg-gray-200 dark:bg-gray-700 rounded-lg">
+                            <button data-kpi="availability" class="kpi-trend-kpi-btn control-btn-active px-4 py-1 text-sm font-semibold rounded-md">Disponibilidade</button>
+                            <button data-kpi="mttr" class="kpi-trend-kpi-btn px-4 py-1 text-sm font-semibold rounded-md">MTTR</button>
+                            <button data-kpi="mtbf" class="kpi-trend-kpi-btn px-4 py-1 text-sm font-semibold rounded-md">MTBF</button>
+                        </div>
+                        <div id="kpi-trend-period-controls" class="flex justify-center p-1 bg-gray-200 dark:bg-gray-700 rounded-lg">
+                            <button data-period="monthly" class="kpi-trend-period-btn control-btn-active px-4 py-1 text-sm font-semibold rounded-md">Mensal</button>
+                            <button data-period="weekly" class="kpi-trend-period-btn px-4 py-1 text-sm font-semibold rounded-md">Semanal</button>
+                        </div>
+                     </div>
+                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 max-w-2xl mx-auto">
+                        <div>
+                            <label for="kpi-trend-availability-goal" class="block text-xs font-medium text-gray-700 dark:text-gray-300">Meta Disp. (>=)</label>
+                            <input type="number" id="kpi-trend-availability-goal" class="kpi-trend-goal-input mt-1 block w-full p-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm text-sm" value="97">
+                        </div>
+                        <div>
+                            <label for="kpi-trend-mttr-goal" class="block text-xs font-medium text-gray-700 dark:text-gray-300">Meta MTTR (<=)</label>
+                            <input type="number" id="kpi-trend-mttr-goal" class="kpi-trend-goal-input mt-1 block w-full p-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm text-sm" value="2">
+                        </div>
+                        <div>
+                            <label for="kpi-trend-mtbf-goal" class="block text-xs font-medium text-gray-700 dark:text-gray-300">Meta MTBF (>=)</label>
+                            <input type="number" id="kpi-trend-mtbf-goal" class="kpi-trend-goal-input mt-1 block w-full p-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm text-sm" value="90">
+                        </div>
+                    </div>
+                     <div id="kpi-trend-container" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                        <canvas id="kpi-trend-canvas"></canvas>
+                    </div>
+                </div>
+
+                <div id="dashboard-pareto-machine-section" class="hidden">
                     <div class="flex justify-center items-center mb-4 relative">
                         <h2 class="text-xl font-bold text-center text-gray-800 dark:text-gray-200">Pareto de Horas Paradas por Máquina</h2>
                         <button id="print-machine-pareto-button" class="absolute right-0 p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" title="Imprimir Gráfico">
@@ -168,7 +243,7 @@
                     </div>
                 </div>
 
-                <div id="dashboard-pareto-daily-section">
+                <div id="dashboard-pareto-daily-section" class="hidden">
                      <div class="flex justify-center items-center mb-4 relative">
                         <h2 class="text-xl font-bold text-center text-gray-800 dark:text-gray-200">Pareto Diário de Paradas e Ordens</h2>
                         <button id="print-daily-pareto-button" class="absolute right-0 p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" title="Imprimir Gráfico">
@@ -188,7 +263,6 @@
 
         <div id="analyzer-page" class="page-content">
             <header class="p-4 border-b dark:border-gray-700 md:hidden">
-                <!-- Botão Hambúrguer -->
                 <button id="menu-toggle-btn" class="text-gray-500 dark:text-gray-400 focus:outline-none">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
@@ -198,22 +272,11 @@
                     <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">Analisador de Indicadores de Manutenção</h1>
                     <p class="mt-2 text-lg text-gray-600 dark:text-gray-400">Calcule Disponibilidade, MTBF e MTTR a partir da sua planilha de paradas.</p>
                 </header>
-
-                <!-- Seção de Upload -->
-                <div class="max-w-3xl mx-auto bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 mb-8">
-                    <div class="flex flex-col items-center justify-center">
-                        <label for="file-upload" class="file-input-button">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                            </svg>
-                            <span>Escolher Planilha de Paradas</span>
-                        </label>
-                        <input id="file-upload" type="file" accept=".xlsx, .xls, .csv">
-                        <p id="file-name" class="mt-4 text-sm text-gray-500 dark:text-gray-400">Nenhum arquivo selecionado.</p>
-                    </div>
+                
+                 <div id="analyzer-no-data" class="text-center mt-8 p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+                    <p class="text-gray-500 dark:text-gray-400">Por favor, carregue uma planilha no menu lateral para começar.</p>
                 </div>
 
-                <!-- Seção de Configuração e Análise -->
                 <div id="analysis-section" class="hidden mt-8 max-w-7xl mx-auto bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
                     <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Configurações da Análise</h2>
                     
@@ -252,7 +315,6 @@
                         </div>
                     </div>
 
-                    <!-- Toggle for column mapping and goals -->
                     <div class="flex justify-between items-center mb-6 mt-8 border-t border-gray-200 dark:border-gray-700 pt-8">
                         <h3 class="text-xl font-bold text-gray-900 dark:text-white">Mapeamento de Colunas e Metas</h3>
                         <button id="toggle-report-fields" class="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-300 text-3xl leading-none font-bold">
@@ -330,7 +392,6 @@
                 <div id="results-section" class="hidden mt-8 max-w-7xl mx-auto">
                     <h2 class="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-white">Resultados da Análise</h2>
                     
-                    <!-- Nova Seção de Resumo de Metas -->
                     <div id="kpi-summary-section" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 text-center">
                         <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
                             <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">Disponibilidade Fora da Meta</h4>
@@ -345,8 +406,6 @@
                             <p id="summary-mtbf" class="text-3xl font-bold text-red-600 dark:text-red-400">0</p>
                         </div>
                     </div>
-                    <!-- Fim da Seção de Resumo -->
-
                     <div class="space-y-6">
                         <div>
                             <h4 class="text-lg font-semibold text-center mb-2 text-gray-800 dark:text-gray-200">Indicadores por Ativo</h4>
@@ -370,7 +429,56 @@
                 </div>
 
                 <div id="error-message" class="hidden mt-6 max-w-7xl mx-auto" role="alert">
-                    <!-- As mensagens de erro e aviso serão inseridas aqui -->
+                    </div>
+            </div>
+        </div>
+
+        <div id="technician-page" class="page-content hidden">
+            <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+                <header class="text-center mb-8">
+                    <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">Apontamento de Horas e Reincidências</h1>
+                </header>
+                
+                <div id="technician-mapping-section" class="hidden max-w-7xl mx-auto bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 mb-8">
+                    <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Mapeamento de Colunas para Apontamento</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                        <div>
+                            <label for="tech-start-date-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Data Início</label>
+                            <select id="tech-start-date-column" class="config-select-tech mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                        </div>
+                        <div>
+                            <label for="tech-start-time-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Hora Início</label>
+                            <select id="tech-start-time-column" class="config-select-tech mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                        </div>
+                        <div>
+                            <label for="tech-end-date-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Data Fim</label>
+                            <select id="tech-end-date-column" class="config-select-tech mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                        </div>
+                        <div>
+                            <label for="tech-end-time-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Hora Fim</label>
+                            <select id="tech-end-time-column" class="config-select-tech mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                        </div>
+                        <div>
+                            <label for="tech-id-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matrícula Técnico</label>
+                            <select id="tech-id-column" class="config-select-tech mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                        </div>
+                        <div>
+                            <label for="tech-name-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome Técnico</label>
+                            <select id="tech-name-column" class="config-select-tech mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
+                        </div>
+                    </div>
+                     <div class="mt-6 text-center">
+                        <button id="generate-technician-chart-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg">
+                            Gerar Gráfico de Apontamento
+                        </button>
+                    </div>
+                </div>
+
+                <div id="technician-pareto-container" class="hidden bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                    <canvas id="technician-pareto-canvas"></canvas>
+                </div>
+                 <div id="technician-no-data" class="text-center mt-8 p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+                    <p class="text-gray-500 dark:text-gray-400">Por favor, carregue uma planilha na aba "Analisador de Indicadores" para visualizar este gráfico.</p>
                 </div>
             </div>
         </div>
@@ -381,8 +489,7 @@
                 <p class="mt-2 text-lg text-gray-600 dark:text-gray-400">Converse com seus dados de manutenção.</p>
             </header>
             <div id="chat-container" class="flex-1 p-4 space-y-4 overflow-y-auto flex flex-col">
-                <!-- Mensagens do chat serão inseridas aqui -->
-            </div>
+                </div>
             <div class="p-4 border-t dark:border-gray-700 flex-shrink-0">
                 <div class="flex">
                     <input type="text" id="chat-input" class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-l-md" placeholder="Pergunte sobre uma máquina ou problema...">
@@ -393,7 +500,6 @@
     </main>
 </div>
 
-<!-- Modals -->
 <div id="pareto-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
     <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white dark:bg-gray-800">
         <div class="mt-3">
@@ -415,8 +521,7 @@
             </div>
             <div class="mt-2 px-7 py-3">
                 <div id="pareto-chart-container">
-                    <!-- O Canvas do gráfico será inserido aqui pelo JavaScript -->
-                </div>
+                    </div>
             </div>
             <div id="pareto-details-container" class="mt-4 px-7 max-h-60 overflow-y-auto"></div>
             <div class="items-center px-4 py-3">
@@ -470,8 +575,7 @@
                 </div>
             </div>
             <div id="daily-details-table-container" class="mt-2 px-4 py-3 max-h-[70vh] overflow-y-auto">
-                <!-- Tabela de detalhes diários será inserida aqui -->
-            </div>
+                </div>
             <div class="items-center px-4 py-3">
                 <button id="daily-details-close" class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
                     Fechar
@@ -519,8 +623,7 @@
                 </div>
             </div>
             <div id="solution-guide-content" class="mt-2 px-4 py-3 max-h-[70vh] overflow-y-auto text-left prose dark:prose-invert">
-                <!-- Conteúdo do guia será inserido aqui -->
-            </div>
+                </div>
             <div class="items-center px-4 py-3">
                 <button id="solution-guide-close" class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
                     Fechar
@@ -542,6 +645,9 @@
         let kpiChartInstance = null; 
         let dashboardParetoInstance = null;
         let dailyParetoInstance = null;
+        let technicianParetoInstance = null;
+        let kpiTrendChartInstance = null;
+        let currentKpiTrendView = { kpi: 'availability', period: 'monthly' };
         let currentParetoData = null;
         let currentParetoMachineId = null;
         let draggedItemData = null;
@@ -831,7 +937,7 @@
         }
 
         function populateSelectors(headers) {
-            const selectors = document.querySelectorAll('.config-select');
+            const selectors = document.querySelectorAll('.config-select, .config-select-tech');
             selectors.forEach(sel => sel.innerHTML = '<option value="">-- Selecione a Coluna --</option>');
             headers.forEach(header => {
                 const option = document.createElement('option');
@@ -853,10 +959,17 @@
                 'start-time-column': ['hr. par. real ini', 'hora inicio', 'hora abertura', 'start time', 'hora_inicio'],
                 'cost-center-column': ['desc. c.custo', 'desc c.custo', 'desc c custo', 'centro de custo', 'linha', 'linha de producao'],
                 'solution-details-column': ['insumos', 'solucao', 'detalhe servico', 'acao executada', 'detalhes da solucao', 'servico executado'],
+                'tech-start-date-column': ['dt. manut. real ini'],
+                'tech-start-time-column': ['hr. manut. real ini'],
+                'tech-end-date-column': ['dt. manut. real fim'],
+                'tech-end-time-column': ['hr. manut. real fim', 'hr. manut. real ini.'], // Added fallback as per user's (likely typo) request
+                'tech-id-column': ['resp. finalização', 'resp finalizacao'],
+                'tech-name-column': ['resp. por finalização', 'resp por finalizacao']
             };
             const normalizeString = (str) => str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s\.]/g, '').trim();
             Object.keys(columnMappings).forEach(selectId => {
                 const selectElement = document.getElementById(selectId);
+                if (!selectElement) return;
                 const patterns = columnMappings[selectId];
                 let matchedHeader = null;
                 for (const header of headers) {
@@ -877,7 +990,7 @@
             });
             const autoFilledFields = Array.from(document.querySelectorAll('.config-select')).filter(sel => sel.value !== '').length;
             if (autoFilledFields > 0) {
-                showMessage(`${autoFilledFields} de ${Object.keys(columnMappings).length} campos foram preenchidos. Verifique se estão corretos.`, 'success');
+                showMessage(`${autoFilledFields} de 9 campos de análise principal foram preenchidos. Verifique se estão corretos.`, 'success');
             }
         }
 
@@ -903,6 +1016,7 @@
             try {
                 processAndDisplayKpis(config);
                 domElements.resultsSection.classList.remove('hidden');
+                // Don't auto-generate technician pareto, wait for button click
             } catch(err) {
                 console.error(err);
                 showMessage(err.message || "Ocorreu um erro ao processar os dados.");
@@ -1035,6 +1149,7 @@
 
             generateDashboardPareto();
             generateDailyParetoChart();
+            generateKpiTrendChart();
         }
 
         function sortAndRenderResults() {
@@ -2029,15 +2144,27 @@
             
             if (pageId === 'dashboard-page') {
                 if (lastResults.length > 0) {
+                    domElements.kpiTrendSection.classList.remove('hidden');
                     domElements.dashboardParetoMachineSection.classList.remove('hidden');
                     domElements.dashboardParetoDailySection.classList.remove('hidden');
                     domElements.dashboardNoData.classList.add('hidden');
+                    generateKpiTrendChart();
                     generateDashboardPareto();
                     generateDailyParetoChart();
                 } else {
+                    domElements.kpiTrendSection.classList.add('hidden');
                     domElements.dashboardParetoMachineSection.classList.add('hidden');
                     domElements.dashboardParetoDailySection.classList.add('hidden');
                     domElements.dashboardNoData.classList.remove('hidden');
+                }
+            } else if (pageId === 'technician-page') {
+                if (jsonData) {
+                    domElements.technicianMappingSection.classList.remove('hidden');
+                    domElements.technicianNoData.classList.add('hidden');
+                } else {
+                    domElements.technicianMappingSection.classList.add('hidden');
+                    domElements.technicianParetoContainer.classList.add('hidden');
+                    domElements.technicianNoData.classList.remove('hidden');
                 }
             }
         }
@@ -2524,6 +2651,314 @@
             `);
         }
 
+        function generateTechnicianPareto() {
+            if (technicianParetoInstance) {
+                technicianParetoInstance.destroy();
+            }
+            if (!jsonData) {
+                showMessage("Por favor, carregue uma planilha primeiro.", 'warning');
+                return;
+            }
+
+            const techConfig = {
+                startDateCol: domElements.techStartDateColumn.value,
+                startTimeCol: domElements.techStartTimeColumn.value,
+                endDateCol: domElements.techEndDateColumn.value,
+                endTimeCol: domElements.techEndTimeColumn.value,
+                techIdCol: domElements.techIdColumn.value,
+                techNameCol: domElements.techNameColumn.value
+            };
+
+            if (!techConfig.startDateCol || !techConfig.startTimeCol || !techConfig.endDateCol || !techConfig.endTimeCol || !techConfig.techIdCol || !techConfig.techNameCol) {
+                showMessage("Por favor, mapeie todas as colunas necessárias para o apontamento de horas.", "warning");
+                return;
+            }
+
+            const reportStartDate = new Date(domElements.reportStartDateInput.value + 'T00:00:00Z');
+            const reportEndDate = new Date(domElements.reportEndDateInput.value + 'T23:59:59Z');
+
+            if (isNaN(reportStartDate.getTime()) || isNaN(reportEndDate.getTime())) {
+                showMessage("Por favor, selecione um período de datas válido no Analisador de Indicadores.", "warning");
+                return;
+            }
+
+            const filteredJsonData = jsonData.filter(row => {
+                const maintenanceStartDate = combineDateAndTime(row[techConfig.startDateCol], row[techConfig.startTimeCol]);
+                return maintenanceStartDate && maintenanceStartDate >= reportStartDate && maintenanceStartDate <= reportEndDate;
+            });
+
+            const technicianHours = {};
+
+            filteredJsonData.forEach(row => {
+                const startDate = row[techConfig.startDateCol];
+                const startTime = row[techConfig.startTimeCol];
+                const endDate = row[techConfig.endDateCol];
+                const endTime = row[techConfig.endTimeCol];
+                const techIds = String(row[techConfig.techIdCol] || '').split('/').map(id => id.trim()).filter(id => id.match(/^\d{6}$/));
+                const techNames = String(row[techConfig.techNameCol] || '').split('/').map(name => name.trim()).filter(name => name);
+
+                if (startDate && startTime && endDate && endTime && techIds.length > 0) {
+                    const startDateTime = combineDateAndTime(startDate, startTime);
+                    const endDateTime = combineDateAndTime(endDate, endTime);
+
+                    if (startDateTime && endDateTime && endDateTime >= startDateTime) {
+                        const durationMs = endDateTime.getTime() - startDateTime.getTime();
+                        const durationHours = durationMs / (1000 * 60 * 60);
+                        
+                        techIds.forEach((id, index) => {
+                            const name = techNames[index] || `Matrícula ${id}`;
+                            if (!technicianHours[name]) {
+                                technicianHours[name] = 0;
+                            }
+                            technicianHours[name] += durationHours; // Assign full duration to each technician
+                        });
+                    }
+                }
+            });
+
+            const sortedTechnicians = Object.entries(technicianHours).sort(([, a], [, b]) => b - a);
+            
+            if (sortedTechnicians.length === 0) {
+                showMessage("Nenhum dado de apontamento de horas válido encontrado com o mapeamento e período atuais.", "warning");
+                domElements.technicianParetoContainer.classList.add('hidden');
+                return;
+            }
+
+            const labels = sortedTechnicians.map(([name]) => name);
+            const data = sortedTechnicians.map(([, hours]) => hours);
+
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            const textColor = isDarkMode ? '#E5E7EB' : '#1F2937';
+            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
+            technicianParetoInstance = new Chart(domElements.technicianParetoCanvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Horas Apontadas',
+                        data: data,
+                        backgroundColor: 'rgba(22, 163, 74, 0.8)', // Green
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Pareto de Horas Apontadas por Técnico',
+                            color: textColor,
+                            font: { size: 16 }
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: textColor },
+                            grid: { color: gridColor }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Total de Horas',
+                                color: textColor
+                            },
+                            ticks: { color: textColor },
+                            grid: { color: gridColor }
+                        }
+                    }
+                }
+            });
+            domElements.technicianParetoContainer.classList.remove('hidden');
+            domElements.technicianNoData.classList.add('hidden');
+        }
+
+        function generateKpiTrendChart() {
+            if (kpiTrendChartInstance) {
+                kpiTrendChartInstance.destroy();
+            }
+            if (!lastResults || lastResults.length === 0) {
+                return;
+            }
+
+            const { kpi, period } = currentKpiTrendView;
+            const allOrders = lastResults.flatMap(res => res.orders);
+
+            const aggregatedByPeriod = {};
+
+            const reportStartDate = new Date(domElements.reportStartDateInput.value + 'T00:00:00Z');
+            const reportEndDate = new Date(domElements.reportEndDateInput.value + 'T23:59:59Z');
+            let currentDate = new Date(reportStartDate);
+
+            if (period === 'monthly') {
+                while (currentDate <= reportEndDate) {
+                    const monthKey = `${currentDate.getUTCFullYear()}-${String(currentDate.getUTCMonth() + 1).padStart(2, '0')}`;
+                    if (!aggregatedByPeriod[monthKey]) {
+                        aggregatedByPeriod[monthKey] = { totalDowntime: 0, totalEvents: 0 };
+                    }
+                    currentDate.setUTCMonth(currentDate.getUTCMonth() + 1);
+                }
+            } else { // weekly
+                 while (currentDate <= reportEndDate) {
+                    const weekStart = new Date(currentDate);
+                    weekStart.setUTCDate(currentDate.getUTCDate() - currentDate.getUTCDay());
+                    const weekKey = toYYYYMMDD(weekStart);
+                     if (!aggregatedByPeriod[weekKey]) {
+                        aggregatedByPeriod[weekKey] = { totalDowntime: 0, totalEvents: 0 };
+                    }
+                    currentDate.setUTCDate(currentDate.getUTCDate() + 7);
+                }
+            }
+            
+            allOrders.forEach(order => {
+                let periodKey;
+                if (period === 'monthly') {
+                    periodKey = `${order.startDateTime.getUTCFullYear()}-${String(order.startDateTime.getUTCMonth() + 1).padStart(2, '0')}`;
+                } else { // weekly
+                    const date = order.startDateTime;
+                    const weekStart = new Date(date);
+                    weekStart.setUTCDate(date.getUTCDate() - date.getUTCDay());
+                    periodKey = toYYYYMMDD(weekStart);
+                }
+                
+                if (aggregatedByPeriod[periodKey]) {
+                    aggregatedByPeriod[periodKey].totalDowntime += order.downtime;
+                    aggregatedByPeriod[periodKey].totalEvents += 1;
+                }
+            });
+            
+            const sortedKeys = Object.keys(aggregatedByPeriod).sort();
+            
+            const labels = sortedKeys.map(key => {
+                if (period === 'monthly') {
+                    const [year, month] = key.split('-');
+                    return new Date(year, month - 1, 1).toLocaleDateString('pt-BR', { month: 'short', year: '2-digit', timeZone: 'UTC' });
+                } else { // weekly
+                    const startDate = new Date(key + 'T00:00:00Z');
+                    return `Sem ${startDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', timeZone: 'UTC' })}`;
+                }
+            });
+
+            const machineCount = lastResults.length;
+
+            const data = sortedKeys.map(key => {
+                const periodData = aggregatedByPeriod[key];
+                
+                let hoursInPeriod;
+                if (period === 'monthly') {
+                    const [year, month] = key.split('-').map(Number);
+                    const daysInMonth = new Date(year, month, 0).getDate();
+                    hoursInPeriod = daysInMonth * 24;
+                } else { // weekly
+                    hoursInPeriod = 7 * 24;
+                }
+
+                const totalPeriodHours = hoursInPeriod * machineCount;
+                const totalUptime = Math.max(0, totalPeriodHours - periodData.totalDowntime);
+
+                switch (kpi) {
+                    case 'availability':
+                        return totalPeriodHours > 0 ? (totalUptime / totalPeriodHours) * 100 : 0;
+                    case 'mttr':
+                        return periodData.totalEvents > 0 ? periodData.totalDowntime / periodData.totalEvents : 0;
+                    case 'mtbf':
+                        return periodData.totalEvents > 0 ? totalUptime / periodData.totalEvents : totalUptime;
+                    default:
+                        return 0;
+                }
+            });
+
+            const kpiInfo = {
+                availability: { label: 'Disponibilidade (%)', color: 'rgba(79, 70, 229, 1)', goal: parseFloat(domElements.kpiTrendAvailabilityGoal.value) },
+                mttr: { label: 'MTTR (h)', color: 'rgba(219, 39, 119, 1)', goal: parseFloat(domElements.kpiTrendMttrGoal.value) },
+                mtbf: { label: 'MTBF (h)', color: 'rgba(22, 163, 74, 1)', goal: parseFloat(domElements.kpiTrendMtbfGoal.value) }
+            };
+
+            const datasets = [{
+                label: kpiInfo[kpi].label,
+                data: data.map(d => d.toFixed(2)),
+                borderColor: kpiInfo[kpi].color,
+                backgroundColor: kpiInfo[kpi].color.replace('1)', '0.2)'),
+                fill: true,
+                tension: 0.1
+            }];
+
+            if (!isNaN(kpiInfo[kpi].goal)) {
+                datasets.push({
+                    label: `Meta (${kpiInfo[kpi].goal.toFixed(2)})`,
+                    data: new Array(labels.length).fill(kpiInfo[kpi].goal),
+                    type: 'line',
+                    borderColor: '#ef4444', // Red
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    fill: false,
+                    pointRadius: 0,
+                    datalabels: {
+                        display: false
+                    }
+                });
+            }
+            
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            const textColor = isDarkMode ? '#E5E7EB' : '#1F2937';
+            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
+            kpiTrendChartInstance = new Chart(domElements.kpiTrendCanvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                             labels: {
+                                color: textColor
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y;
+                                        if (kpi === 'availability') {
+                                            label += '%';
+                                        }
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { ticks: { color: textColor }, grid: { color: gridColor } },
+                        y: {
+                            beginAtZero: kpi !== 'availability',
+                            ticks: { color: textColor },
+                            grid: { color: gridColor },
+                            title: {
+                                display: true,
+                                text: kpiInfo[kpi].label,
+                                color: textColor
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
         function initializeEventListeners() {
             domElements.themeToggleBtn.addEventListener('click', () => {
                 document.documentElement.classList.toggle('dark');
@@ -2539,6 +2974,11 @@
             domElements.navAnalyzer.addEventListener('click', (e) => {
                 e.preventDefault();
                 switchPage('analyzer-page');
+            });
+
+            domElements.navTechnician.addEventListener('click', (e) => {
+                e.preventDefault();
+                switchPage('technician-page');
             });
 
             domElements.navChatbot.addEventListener('click', (e) => {
@@ -2690,7 +3130,11 @@
                         updateReportDateRange();
                         populateProductionLineFilter();
                         domElements.analysisSection.classList.remove('hidden');
+                        domElements.analyzerNoData.classList.add('hidden');
                         domElements.resultsSection.classList.add('hidden');
+                        domElements.technicianMappingSection.classList.remove('hidden');
+                        domElements.technicianNoData.classList.add('hidden');
+                        switchPage('analyzer-page');
                     } catch (err) {
                         showMessage(err.message || "Não foi possível ler o arquivo.");
                         domElements.analysisSection.classList.add('hidden');
@@ -2700,6 +3144,7 @@
             });
 
             domElements.analyzeButton.addEventListener('click', runAnalysis);
+            domElements.generateTechnicianChartButton.addEventListener('click', generateTechnicianPareto);
 
             domElements.newCategoryCreateButton.addEventListener('click', () => {
                 const newName = domElements.newCategoryNameInput.value.trim();
@@ -2807,6 +3252,28 @@
                         </body></html>`);
                 }
             });
+            
+            domElements.kpiTrendKpiControls.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') {
+                    currentKpiTrendView.kpi = e.target.dataset.kpi;
+                    document.querySelectorAll('.kpi-trend-kpi-btn').forEach(btn => btn.classList.remove('control-btn-active'));
+                    e.target.classList.add('control-btn-active');
+                    generateKpiTrendChart();
+                }
+            });
+
+            domElements.kpiTrendPeriodControls.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') {
+                    currentKpiTrendView.period = e.target.dataset.period;
+                    document.querySelectorAll('.kpi-trend-period-btn').forEach(btn => btn.classList.remove('control-btn-active'));
+                    e.target.classList.add('control-btn-active');
+                    generateKpiTrendChart();
+                }
+            });
+            
+            document.querySelectorAll('.kpi-trend-goal-input').forEach(input => {
+                input.addEventListener('change', generateKpiTrendChart);
+            });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -2814,6 +3281,7 @@
                 fileUpload: document.getElementById('file-upload'),
                 fileNameDisplay: document.getElementById('file-name'),
                 analysisSection: document.getElementById('analysis-section'),
+                analyzerNoData: document.getElementById('analyzer-no-data'),
                 resultsSection: document.getElementById('results-section'),
                 reportStartDateInput: document.getElementById('report-start-date'),
                 reportEndDateInput: document.getElementById('report-end-date'),
@@ -2872,9 +3340,11 @@
                 printSolutionGuideButton: document.getElementById('print-solution-guide-button'),
                 navDashboard: document.getElementById('nav-dashboard'),
                 navAnalyzer: document.getElementById('nav-analyzer'),
+                navTechnician: document.getElementById('nav-technician'),
                 navChatbot: document.getElementById('nav-chatbot'),
                 dashboardPage: document.getElementById('dashboard-page'),
                 analyzerPage: document.getElementById('analyzer-page'),
+                technicianPage: document.getElementById('technician-page'),
                 chatbotPage: document.getElementById('chatbot-page'),
                 chatContainer: document.getElementById('chat-container'),
                 chatInput: document.getElementById('chat-input'),
@@ -2904,6 +3374,24 @@
                 dailyDetailsClose: document.getElementById('daily-details-close'),
                 printDailyDetailsButton: document.getElementById('print-daily-details-button'),
                 exportDailyDetailsButton: document.getElementById('export-daily-details-button'),
+                technicianParetoContainer: document.getElementById('technician-pareto-container'),
+                technicianParetoCanvas: document.getElementById('technician-pareto-canvas'),
+                technicianNoData: document.getElementById('technician-no-data'),
+                technicianMappingSection: document.getElementById('technician-mapping-section'),
+                techStartDateColumn: document.getElementById('tech-start-date-column'),
+                techStartTimeColumn: document.getElementById('tech-start-time-column'),
+                techEndDateColumn: document.getElementById('tech-end-date-column'),
+                techEndTimeColumn: document.getElementById('tech-end-time-column'),
+                techIdColumn: document.getElementById('tech-id-column'),
+                techNameColumn: document.getElementById('tech-name-column'),
+                generateTechnicianChartButton: document.getElementById('generate-technician-chart-button'),
+                kpiTrendSection: document.getElementById('kpi-trend-section'),
+                kpiTrendCanvas: document.getElementById('kpi-trend-canvas'),
+                kpiTrendKpiControls: document.getElementById('kpi-trend-kpi-controls'),
+                kpiTrendPeriodControls: document.getElementById('kpi-trend-period-controls'),
+                kpiTrendAvailabilityGoal: document.getElementById('kpi-trend-availability-goal'),
+                kpiTrendMttrGoal: document.getElementById('kpi-trend-mttr-goal'),
+                kpiTrendMtbfGoal: document.getElementById('kpi-trend-mtbf-goal'),
             };
             initializeEventListeners();
             applyTheme();
@@ -2912,3 +3400,5 @@
     </script>
 </body>
 </html>
+
+
