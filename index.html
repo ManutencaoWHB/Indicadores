@@ -162,10 +162,6 @@
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                     Dashboard
                 </a>
-                <a href="#" id="nav-technician" class="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Apontamento de Horas
-                </a>
                 <a href="#" id="nav-chatbot" class="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
                     Chatbot da Manutenção
@@ -445,56 +441,6 @@
             </div>
         </div>
 
-        <div id="technician-page" class="page-content hidden">
-            <div class="container mx-auto p-4 sm:p-6 lg:p-8">
-                <header class="text-center mb-8">
-                    <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">Apontamento de Horas e Reincidências</h1>
-                </header>
-                
-                <div id="technician-mapping-section" class="hidden max-w-7xl mx-auto bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 mb-8">
-                    <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Mapeamento de Colunas para Apontamento</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                        <div>
-                            <label for="tech-start-date-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Data Início</label>
-                            <select id="tech-start-date-column" class="config-select-tech mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                        </div>
-                        <div>
-                            <label for="tech-start-time-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Hora Início</label>
-                            <select id="tech-start-time-column" class="config-select-tech mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                        </div>
-                        <div>
-                            <label for="tech-end-date-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Data Fim</label>
-                            <select id="tech-end-date-column" class="config-select-tech mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                        </div>
-                        <div>
-                            <label for="tech-end-time-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Hora Fim</label>
-                            <select id="tech-end-time-column" class="config-select-tech mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                        </div>
-                        <div>
-                            <label for="tech-id-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matrícula Técnico</label>
-                            <select id="tech-id-column" class="config-select-tech mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                        </div>
-                        <div>
-                            <label for="tech-name-column" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome Técnico</label>
-                            <select id="tech-name-column" class="config-select-tech mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
-                        </div>
-                    </div>
-                     <div class="mt-6 text-center">
-                        <button id="generate-technician-chart-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg">
-                            Gerar Gráfico de Apontamento
-                        </button>
-                    </div>
-                </div>
-
-                <div id="technician-pareto-container" class="hidden bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-                    <canvas id="technician-pareto-canvas"></canvas>
-                </div>
-                 <div id="technician-no-data" class="text-center mt-8 p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-                    <p class="text-gray-500 dark:text-gray-400">Por favor, carregue uma planilha na aba "Analisador de Indicadores" para visualizar este gráfico.</p>
-                </div>
-            </div>
-        </div>
-
         <div id="chatbot-page" class="page-content hidden h-full flex flex-col">
             <header class="text-center p-4 border-b dark:border-gray-700 flex-shrink-0">
                 <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">Chatbot da Manutenção</h1>
@@ -657,7 +603,6 @@
         let kpiChartInstance = null; 
         let dashboardParetoInstance = null;
         let dailyParetoInstance = null;
-        let technicianParetoInstance = null;
         let kpiTrendChartInstance = null;
         let currentKpiTrendView = { kpi: 'availability', period: 'monthly' };
         let currentParetoData = null;
@@ -949,7 +894,7 @@
         }
 
         function populateSelectors(headers) {
-            const selectors = document.querySelectorAll('.config-select, .config-select-tech');
+            const selectors = document.querySelectorAll('.config-select');
             selectors.forEach(sel => sel.innerHTML = '<option value="">-- Selecione a Coluna --</option>');
             headers.forEach(header => {
                 const option = document.createElement('option');
@@ -970,13 +915,7 @@
                 'start-date-column': ['dt. par. real ini', 'data inicio', 'data abertura', 'start date', 'data_inicio', 'data'],
                 'start-time-column': ['hr. par. real ini', 'hora inicio', 'hora abertura', 'start time', 'hora_inicio'],
                 'cost-center-column': ['desc. c.custo', 'desc c.custo', 'desc c custo', 'centro de custo', 'linha', 'linha de producao'],
-                'solution-details-column': ['insumos', 'detalhe servico', 'acao executada', 'detalhes da solucao', 'servico executado'],
-                'tech-start-date-column': ['dt. manut. real ini'],
-                'tech-start-time-column': ['hr. manut. real ini'],
-                'tech-end-date-column': ['dt. manut. real fim'],
-                'tech-end-time-column': ['hr. manut. real fim', 'hr. manut. real ini.'], // Added fallback as per user's (likely typo) request
-                'tech-id-column': ['resp. finalização', 'resp finalizacao'],
-                'tech-name-column': ['resp. por finalização', 'resp por finalizacao']
+                'solution-details-column': ['insumos', 'detalhe servico', 'acao executada', 'detalhes da solucao', 'servico executado']
             };
             const normalizeString = (str) => str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s\.]/g, '').trim();
             Object.keys(columnMappings).forEach(selectId => {
@@ -1028,7 +967,6 @@
             try {
                 processAndDisplayKpis(config);
                 domElements.resultsSection.classList.remove('hidden');
-                // Don't auto-generate technician pareto, wait for button click
             } catch(err) {
                 console.error(err);
                 showMessage(err.message || "Ocorreu um erro ao processar os dados.");
@@ -2181,15 +2119,6 @@
                     domElements.dashboardParetoDailySection.classList.add('hidden');
                     domElements.dashboardNoData.classList.remove('hidden');
                 }
-            } else if (pageId === 'technician-page') {
-                if (jsonData) {
-                    domElements.technicianMappingSection.classList.remove('hidden');
-                    domElements.technicianNoData.classList.add('hidden');
-                } else {
-                    domElements.technicianMappingSection.classList.add('hidden');
-                    domElements.technicianParetoContainer.classList.add('hidden');
-                    domElements.technicianNoData.classList.remove('hidden');
-                }
             }
         }
 
@@ -2675,132 +2604,6 @@
             `);
         }
 
-        function generateTechnicianPareto() {
-            if (technicianParetoInstance) {
-                technicianParetoInstance.destroy();
-            }
-            if (!jsonData) {
-                showMessage("Por favor, carregue uma planilha primeiro.", 'warning');
-                return;
-            }
-
-            const techConfig = {
-                startDateCol: domElements.techStartDateColumn.value,
-                startTimeCol: domElements.techStartTimeColumn.value,
-                endDateCol: domElements.techEndDateColumn.value,
-                endTimeCol: domElements.techEndTimeColumn.value,
-                techIdCol: domElements.techIdColumn.value,
-                techNameCol: domElements.techNameColumn.value
-            };
-
-            if (!techConfig.startDateCol || !techConfig.startTimeCol || !techConfig.endDateCol || !techConfig.endTimeCol || !techConfig.techIdCol || !techConfig.techNameCol) {
-                showMessage("Por favor, mapeie todas as colunas necessárias para o apontamento de horas.", "warning");
-                return;
-            }
-
-            const reportStartDate = new Date(domElements.reportStartDateInput.value + 'T00:00:00Z');
-            const reportEndDate = new Date(domElements.reportEndDateInput.value + 'T23:59:59Z');
-
-            if (isNaN(reportStartDate.getTime()) || isNaN(reportEndDate.getTime())) {
-                showMessage("Por favor, selecione um período de datas válido no Analisador de Indicadores.", "warning");
-                return;
-            }
-
-            const filteredJsonData = jsonData.filter(row => {
-                const maintenanceStartDate = combineDateAndTime(row[techConfig.startDateCol], row[techConfig.startTimeCol]);
-                return maintenanceStartDate && maintenanceStartDate >= reportStartDate && maintenanceStartDate <= reportEndDate;
-            });
-
-            const technicianHours = {};
-
-            filteredJsonData.forEach(row => {
-                const startDate = row[techConfig.startDateCol];
-                const startTime = row[techConfig.startTimeCol];
-                const endDate = row[techConfig.endDateCol];
-                const endTime = row[techConfig.endTimeCol];
-                const techIds = String(row[techConfig.techIdCol] || '').split('/').map(id => id.trim()).filter(id => id.match(/^\d{6}$/));
-                const techNames = String(row[techConfig.techNameCol] || '').split('/').map(name => name.trim()).filter(name => name);
-
-                if (startDate && startTime && endDate && endTime && techIds.length > 0) {
-                    const startDateTime = combineDateAndTime(startDate, startTime);
-                    const endDateTime = combineDateAndTime(endDate, endTime);
-
-                    if (startDateTime && endDateTime && endDateTime >= startDateTime) {
-                        const durationMs = endDateTime.getTime() - startDateTime.getTime();
-                        const durationHours = durationMs / (1000 * 60 * 60);
-                        
-                        techIds.forEach((id, index) => {
-                            const name = techNames[index] || `Matrícula ${id}`;
-                            if (!technicianHours[name]) {
-                                technicianHours[name] = 0;
-                            }
-                            technicianHours[name] += durationHours; // Assign full duration to each technician
-                        });
-                    }
-                }
-            });
-
-            const sortedTechnicians = Object.entries(technicianHours).sort(([, a], [, b]) => b - a);
-            
-            if (sortedTechnicians.length === 0) {
-                showMessage("Nenhum dado de apontamento de horas válido encontrado com o mapeamento e período atuais.", "warning");
-                domElements.technicianParetoContainer.classList.add('hidden');
-                return;
-            }
-
-            const labels = sortedTechnicians.map(([name]) => name);
-            const data = sortedTechnicians.map(([, hours]) => hours);
-
-            const isDarkMode = document.documentElement.classList.contains('dark');
-            const textColor = isDarkMode ? '#E5E7EB' : '#1F2937';
-            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-
-            technicianParetoInstance = new Chart(domElements.technicianParetoCanvas.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Horas Apontadas',
-                        data: data,
-                        backgroundColor: 'rgba(22, 163, 74, 0.8)', // Green
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Pareto de Horas Apontadas por Técnico',
-                            color: textColor,
-                            font: { size: 16 }
-                        },
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: { color: textColor },
-                            grid: { color: gridColor }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Total de Horas',
-                                color: textColor
-                            },
-                            ticks: { color: textColor },
-                            grid: { color: gridColor }
-                        }
-                    }
-                }
-            });
-            domElements.technicianParetoContainer.classList.remove('hidden');
-            domElements.technicianNoData.classList.add('hidden');
-        }
-
         function generateKpiTrendChart() {
             if (kpiTrendChartInstance) {
                 kpiTrendChartInstance.destroy();
@@ -3000,11 +2803,6 @@
                 switchPage('analyzer-page');
             });
 
-            domElements.navTechnician.addEventListener('click', (e) => {
-                e.preventDefault();
-                switchPage('technician-page');
-            });
-
             domElements.navChatbot.addEventListener('click', (e) => {
                 e.preventDefault();
                 switchPage('chatbot-page');
@@ -3156,8 +2954,6 @@
                         domElements.analysisSection.classList.remove('hidden');
                         domElements.analyzerNoData.classList.add('hidden');
                         domElements.resultsSection.classList.add('hidden');
-                        domElements.technicianMappingSection.classList.remove('hidden');
-                        domElements.technicianNoData.classList.add('hidden');
                         switchPage('analyzer-page');
                     } catch (err) {
                         showMessage(err.message || "Não foi possível ler o arquivo.");
@@ -3168,7 +2964,6 @@
             });
 
             domElements.analyzeButton.addEventListener('click', runAnalysis);
-            domElements.generateTechnicianChartButton.addEventListener('click', generateTechnicianPareto);
 
             domElements.newCategoryCreateButton.addEventListener('click', () => {
                 const newName = domElements.newCategoryNameInput.value.trim();
@@ -3364,11 +3159,9 @@
                 printSolutionGuideButton: document.getElementById('print-solution-guide-button'),
                 navDashboard: document.getElementById('nav-dashboard'),
                 navAnalyzer: document.getElementById('nav-analyzer'),
-                navTechnician: document.getElementById('nav-technician'),
                 navChatbot: document.getElementById('nav-chatbot'),
                 dashboardPage: document.getElementById('dashboard-page'),
                 analyzerPage: document.getElementById('analyzer-page'),
-                technicianPage: document.getElementById('technician-page'),
                 chatbotPage: document.getElementById('chatbot-page'),
                 chatContainer: document.getElementById('chat-container'),
                 chatInput: document.getElementById('chat-input'),
@@ -3398,17 +3191,6 @@
                 dailyDetailsClose: document.getElementById('daily-details-close'),
                 printDailyDetailsButton: document.getElementById('print-daily-details-button'),
                 exportDailyDetailsButton: document.getElementById('export-daily-details-button'),
-                technicianParetoContainer: document.getElementById('technician-pareto-container'),
-                technicianParetoCanvas: document.getElementById('technician-pareto-canvas'),
-                technicianNoData: document.getElementById('technician-no-data'),
-                technicianMappingSection: document.getElementById('technician-mapping-section'),
-                techStartDateColumn: document.getElementById('tech-start-date-column'),
-                techStartTimeColumn: document.getElementById('tech-start-time-column'),
-                techEndDateColumn: document.getElementById('tech-end-date-column'),
-                techEndTimeColumn: document.getElementById('tech-end-time-column'),
-                techIdColumn: document.getElementById('tech-id-column'),
-                techNameColumn: document.getElementById('tech-name-column'),
-                generateTechnicianChartButton: document.getElementById('generate-technician-chart-button'),
                 kpiTrendSection: document.getElementById('kpi-trend-section'),
                 kpiTrendCanvas: document.getElementById('kpi-trend-canvas'),
                 kpiTrendKpiControls: document.getElementById('kpi-trend-kpi-controls'),
