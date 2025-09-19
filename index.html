@@ -5,15 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plataforma de Análise de Manutenção</title>
     
-    <!-- Fonte Inter do Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- 1. Incluindo Tailwind CSS PRIMEIRO -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- 2. Configuração do Tailwind e Script do Dark Mode DEPOIS -->
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -59,11 +56,9 @@
         }
     </script>
 
-    <!-- Adicionada biblioteca de gráficos Chart.js e plugin de rótulos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
 
-    <!-- Incluindo a biblioteca SheetJS (xlsx) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
@@ -115,19 +110,38 @@
         .dark .control-btn-active {
              background-color: #3730a3 !important;
         }
+        .order-title-toggle {
+            cursor: pointer;
+            text-decoration: none; /* Sublinhado removido */
+            color: #4f46e5; /* indigo-600 */
+        }
+        .order-title-toggle:hover {
+            text-decoration: underline; /* Sublinhado adicionado no hover */
+        }
+        .dark .order-title-toggle {
+            color: #818cf8; /* indigo-400 */
+        }
+        .solution-details {
+            display: none;
+            padding: 8px;
+            margin-top: 4px;
+            background-color: #f3f4f6; /* gray-100 */
+            border-radius: 4px;
+        }
+        .dark .solution-details {
+             background-color: #4b5563; /* gray-600 */
+        }
     </style>
 </head>
 <body class="antialiased bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
 
 <div class="flex h-screen bg-gray-100 dark:bg-gray-900">
-    <!-- Sidebar -->
     <div id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 shadow-md flex-shrink-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out z-40 flex flex-col">
         <div>
             <div class="p-4 border-b dark:border-gray-700">
                 <h2 class="text-xl font-bold text-gray-900 dark:text-white">Menu Principal</h2>
             </div>
             
-            <!-- Seção de Upload movida para o topo do menu -->
             <div class="p-4 border-b dark:border-gray-700">
                  <label for="file-upload" class="file-input-button">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -167,10 +181,8 @@
         </div>
     </div>
 
-    <!-- Overlay para o menu mobile -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
 
-    <!-- Conteúdo Principal -->
     <main class="flex-1 overflow-y-auto">
         <div id="dashboard-page" class="page-content hidden">
              <div class="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
@@ -958,7 +970,7 @@
                 'start-date-column': ['dt. par. real ini', 'data inicio', 'data abertura', 'start date', 'data_inicio', 'data'],
                 'start-time-column': ['hr. par. real ini', 'hora inicio', 'hora abertura', 'start time', 'hora_inicio'],
                 'cost-center-column': ['desc. c.custo', 'desc c.custo', 'desc c custo', 'centro de custo', 'linha', 'linha de producao'],
-                'solution-details-column': ['insumos', 'solucao', 'detalhe servico', 'acao executada', 'detalhes da solucao', 'servico executado'],
+                'solution-details-column': ['insumos', 'detalhe servico', 'acao executada', 'detalhes da solucao', 'servico executado'],
                 'tech-start-date-column': ['dt. manut. real ini'],
                 'tech-start-time-column': ['hr. manut. real ini'],
                 'tech-end-date-column': ['dt. manut. real fim'],
@@ -1621,7 +1633,7 @@
             if (results.length === 0) {
                 tableHTML += `<tr><td colspan="10" class="text-center py-4">Nenhum dado para exibir.</td></tr>`;
             } else {
-                results.forEach(res => {
+                results.forEach((res, resIndex) => {
                     let availabilityColor;
                     if (res.availability >= goals.availabilityGreen) availabilityColor = 'bg-green-100 text-green-800';
                     else if (res.availability >= goals.availabilityYellow) availabilityColor = 'bg-yellow-100 text-yellow-800';
@@ -1659,11 +1671,18 @@
                                 </button>
                             </div>
                         </div>
-                        <table class="min-w-full"><thead><tr class="text-xs text-left text-gray-600 dark:text-gray-400"><th class="py-1 px-2">OS</th><th class="py-1 px-2">Título</th><th class="py-1 px-2">Data/Hora Abertura</th><th class="py-1 px-2">Duração (h)</th></tr></thead><tbody class="text-gray-800 dark:text-gray-200">
-                        ${res.orders.map(order => `<tr class="border-t border-gray-200 dark:border-gray-700">
-                            <td class="px-1 py-1">${order.serviceOrder}</td><td class="px-1 py-1">${order.title}</td>
-                            <td class="px-1 py-1">${formatDateTime(order.startDateTime)}</td><td class="px-1 py-1 text-right">${order.downtime.toFixed(2)}</td>
-                        </tr>`).join('')}</tbody></table></div></td></tr>`;
+                        <table class="min-w-full"><thead><tr class="text-xs text-left text-gray-600 dark:text-gray-400"><th class="py-1 px-2">OS</th><th class="py-1 px-2">Título</th><th class="py-1 px-2">Data/Hora Abertura</th><th class="py-1 px-2">Duração (h)</th></tr></thead><tbody>
+                        ${res.orders.map((order, orderIndex) => `
+                            <tr class="border-t border-gray-200 dark:border-gray-700">
+                                <td class="px-1 py-1">${order.serviceOrder}</td>
+                                <td class="px-1 py-1">
+                                    <a class="order-title-toggle" data-target-id="solution-${resIndex}-${orderIndex}">${order.title}</a>
+                                    <div id="solution-${resIndex}-${orderIndex}" class="solution-details">${order.solution || 'Nenhum detalhe informado.'}</div>
+                                </td>
+                                <td class="px-1 py-1">${formatDateTime(order.startDateTime)}</td>
+                                <td class="px-1 py-1 text-right">${order.downtime.toFixed(2)}</td>
+                            </tr>`).join('')}
+                        </tbody></table></div></td></tr>`;
                 });
             }
             tableHTML += `</tbody></table>`;
@@ -1694,6 +1713,17 @@
                     }
                 });
             });
+            document.querySelectorAll('.order-title-toggle').forEach(title => {
+                title.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    const targetId = event.target.dataset.targetId;
+                    const detailDiv = document.getElementById(targetId);
+                    if (detailDiv) {
+                        const isVisible = detailDiv.style.display === 'block';
+                        detailDiv.style.display = isVisible ? 'none' : 'block';
+                    }
+                });
+            });
             document.querySelectorAll('.print-button').forEach(button => {
                 button.addEventListener('click', (event) => {
                     const machineId = event.currentTarget.dataset.machineIdToPrint;
@@ -1715,7 +1745,6 @@
                     }
                 });
             });
-            // Novo event listener para o botão de exportar Excel
             document.querySelectorAll('.export-excel-button').forEach(button => {
                 button.addEventListener('click', (event) => {
                     const machineId = event.currentTarget.dataset.machineIdForExcel;
@@ -1724,7 +1753,6 @@
             });
         }
         
-        // Nova função para exportar os detalhes da máquina para Excel
         function exportMachineDetailsToExcel(machineId) {
             const machineData = lastResults.find(res => String(res.machineId) === String(machineId));
             if (!machineData) {
@@ -1734,30 +1762,26 @@
 
             const formatDateTime = (date) => (!date || isNaN(date)) ? 'N/A' : date.toLocaleString('pt-BR', { timeZone: 'UTC' });
 
-            // 1. Prepara os dados para a planilha
             const dataForSheet = machineData.orders.map(order => ({
                 'OS': order.serviceOrder,
                 'Título': order.title,
+                'Detalhes/Insumos': order.solution,
                 'Data/Hora Abertura': formatDateTime(order.startDateTime),
                 'Duração (h)': order.downtime
             }));
 
-            // 2. Cria a planilha
             const ws = XLSX.utils.json_to_sheet(dataForSheet);
 
-            // Opcional: Ajusta a largura das colunas
             ws['!cols'] = [
                 { wch: 15 }, // OS
                 { wch: 50 }, // Título
+                { wch: 60 }, // Detalhes/Insumos
                 { wch: 20 }, // Data/Hora Abertura
                 { wch: 15 }  // Duração (h)
             ];
             
-            // 3. Cria o workbook
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Detalhes Paradas');
-
-            // 4. Inicia o download
             XLSX.writeFile(wb, `Detalhes_Paradas_${machineId}.xlsx`);
         }
         
@@ -3400,5 +3424,3 @@
     </script>
 </body>
 </html>
-
-
