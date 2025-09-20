@@ -620,11 +620,34 @@
             domElements.reportEndDateInput.style.colorScheme = colorScheme;
         };
 
-        const showMessage = (message, type = 'error') => {
+        const showMessage = (message, type = 'error', details = null) => {
             const colorClasses = { error: 'bg-red-100 border-red-400 text-red-700', warning: 'bg-yellow-100 border-yellow-400 text-yellow-800', success: 'bg-green-100 border-green-400 text-green-800' };
             const titles = { error: 'Ocorreu um erro!', warning: 'Aviso:', success: 'Sucesso:' };
-            domElements.errorMessageDiv.innerHTML = `<div class="px-4 py-3 rounded-lg ${colorClasses[type]}"><strong class="font-bold">${titles[type] || 'Mensagem:'}</strong> <span class="block sm:inline">${message}</span></div>`;
+            
+            let detailsHTML = '';
+            if (details && details.length > 0) {
+                const detailsList = details.map(d => `<li class="border-t border-yellow-300 py-1"><strong>Linha ${d.rowNumber}:</strong> ${d.reason}</li>`).join('');
+                detailsHTML = `
+                    <a id="toggle-ignored-details" class="underline cursor-pointer ml-2 font-semibold">Ver Detalhes</a>
+                    <div id="ignored-details-list" class="hidden mt-2 text-sm max-h-40 overflow-y-auto">
+                        <ul class="list-none p-0">${detailsList}</ul>
+                    </div>
+                `;
+            }
+
+            domElements.errorMessageDiv.innerHTML = `<div class="px-4 py-3 rounded-lg ${colorClasses[type]}"><strong class="font-bold">${titles[type] || 'Mensagem:'}</strong> <span class="block sm:inline">${message}</span> ${detailsHTML}</div>`;
             domElements.errorMessageDiv.classList.remove('hidden');
+
+            const toggleLink = document.getElementById('toggle-ignored-details');
+            if (toggleLink) {
+                toggleLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const detailsList = document.getElementById('ignored-details-list');
+                    const isHidden = detailsList.classList.contains('hidden');
+                    detailsList.classList.toggle('hidden');
+                    e.target.textContent = isHidden ? 'Ocultar Detalhes' : 'Ver Detalhes';
+                });
+            }
         };
         const hideMessage = () => { domElements.errorMessageDiv.classList.add('hidden'); domElements.errorMessageDiv.innerHTML = ''; };
         
@@ -976,26 +999,39 @@
         
         function processAndDisplayKpis(config) {
             const aggregatedData = {};
-            let invalidRows = 0;
+            const ignoredRowsInfo = [];
             const reportEndDate = new Date(domElements.reportEndDateInput.value + 'T23:59:59Z');
             const reportStartDate = new Date(domElements.reportStartDateInput.value + 'T00:00:00Z');
             
-            let initialData = jsonData;
+            let initialData = jsonData.map((row, index) => ({ data: row, originalIndex: index + 2 }));
+
             if (config.selectedProductionLine && config.costCenterCol) {
-                initialData = jsonData.filter(row => row[config.costCenterCol] == config.selectedProductionLine);
+                initialData = initialData.filter(item => item.data[config.costCenterCol] == config.selectedProductionLine);
             }
             
-            const filteredData = initialData.filter(row => {
-                const startDateTime = combineDateAndTime(row[config.startDateCol], row[config.startTimeCol]);
+            const filteredData = initialData.filter(item => {
+                const startDateTime = combineDateAndTime(item.data[config.startDateCol], item.data[config.startTimeCol]);
                 return startDateTime && startDateTime >= reportStartDate && startDateTime <= reportEndDate;
             });
 
-            filteredData.forEach((row) => {
+            filteredData.forEach((item) => {
+                const row = item.data;
                 const machineId = row[config.machineCol];
-                if (!machineId) { invalidRows++; return; }
                 const downtimeHours = parseDurationToHours(row[config.downtimeCol]);
                 const startDateTime = combineDateAndTime(row[config.startDateCol], row[config.startTimeCol]);
-                if (isNaN(downtimeHours) || !startDateTime) { invalidRows++; return; }
+                
+                let reason = '';
+                if (!machineId) {
+                    reason = `Coluna de Ativo/Máquina ('${config.machineCol}') está vazia.`;
+                } else if (isNaN(downtimeHours)) {
+                    reason = `Não foi possível ler a duração ('${row[config.downtimeCol] || ''}') na coluna '${config.downtimeCol}'.`;
+                }
+                
+                if (reason) {
+                    ignoredRowsInfo.push({ rowNumber: item.originalIndex, reason: reason });
+                    return; 
+                }
+
                 if (!aggregatedData[machineId]) {
                     aggregatedData[machineId] = { 
                         description: row[config.assetNameCol] || '', 
@@ -1022,9 +1058,18 @@
 
             if (Object.keys(aggregatedData).length === 0) {
                 domElements.resultsSection.classList.add('hidden');
-                return showMessage("Nenhum dado válido encontrado no período selecionado. Verifique os filtros e o mapeamento.", 'error');
+                 if (ignoredRowsInfo.length > 0) {
+                    showMessage(`${ignoredRowsInfo.length} linhas foram ignoradas. Nenhuma linha válida encontrada no período.`, 'error', ignoredRowsInfo);
+                } else {
+                    showMessage("Nenhum dado válido encontrado no período selecionado. Verifique os filtros e o mapeamento.", 'error');
+                }
+                return;
             }
-            if (invalidRows > 0) showMessage(`${invalidRows} linhas foram ignoradas por dados ausentes ou formato inválido.`, 'warning');
+            
+            if (ignoredRowsInfo.length > 0) {
+                 showMessage(`${ignoredRowsInfo.length} linhas foram ignoradas por dados ausentes ou formato inválido.`, 'warning', ignoredRowsInfo);
+            }
+
 
             lastResults = Object.keys(aggregatedData).map(machineId => {
                 const data = aggregatedData[machineId];
@@ -1090,7 +1135,6 @@
             
             sortAndRenderResults();
             
-            // Setup dashboard slider
             const maxMachines = lastResults.length > 1 ? lastResults.length : 1;
             domElements.dashboardParetoSlider.max = maxMachines;
             const initialSliderValue = Math.min(10, maxMachines);
@@ -1249,15 +1293,8 @@
             </svg>`;
         }
         
-        /**
-         * A robust fetch wrapper that handles API calls with exponential backoff for retries.
-         * @param {string} apiUrl The API endpoint to call.
-         * @param {object} payload The JSON payload to send.
-         * @param {number} maxRetries The maximum number of retry attempts.
-         * @returns {Promise<object>} The JSON response from the API.
-         */
         async function fetchWithBackoff(apiUrl, payload, maxRetries = 5) {
-            let delay = 1000; // Start with 1 second
+            let delay = 1000;
             for (let i = 0; i < maxRetries; i++) {
                 try {
                     const response = await fetch(apiUrl, {
@@ -1270,21 +1307,18 @@
                         return await response.json();
                     }
 
-                    // Don't retry on client-side errors (4xx), except for 429 (Too Many Requests)
                     if (response.status >= 400 && response.status < 500 && response.status !== 429) {
                         const errorData = await response.json().catch(() => ({}));
                         const errorMessage = errorData.error?.message || response.statusText;
                         throw new Error(`Erro do Cliente: ${response.status} ${errorMessage}`);
                     }
                     
-                    // Do not log retry attempts to the user console. This is for internal debugging.
-
                 } catch (error) {
-                    if (i === maxRetries - 1) throw error; // Re-throw the last error
+                    if (i === maxRetries - 1) throw error;
                 }
 
                 await new Promise(resolve => setTimeout(resolve, delay));
-                delay *= 2; // Double the delay for the next retry
+                delay *= 2;
             }
             throw new Error(`A chamada à API falhou após ${maxRetries} tentativas.`);
         }
