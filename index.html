@@ -1323,55 +1323,64 @@
             throw new Error(`A chamada à API falhou após ${maxRetries} tentativas.`);
         }
 
-        async function analyzeWithGemini(ordersData, buttonElement) {
-            buttonElement.disabled = true;
-            buttonElement.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-700 dark:text-gray-300 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
-            
-            const dataWithIds = ordersData.map((order, index) => ({ ...order, originalId: index }));
-            
-            const prompt = `Analise a seguinte lista de ordens de manutenção (com 'title', 'downtime' e 'originalId'). Agrupe problemas que são semanticamente similares. Para cada grupo, crie um "problemGroup" curto. Calcule a "frequency" (número de ocorrências) e "totalHours" (soma dos downtimes) para cada grupo. Para cada grupo, retorne também um array "orderIds" contendo os 'originalId' das ordens que pertencem a ele. O resultado final deve ser um array de objetos JSON. Exemplo de agrupamento: "motor quebrou" e "falha no motor principal" devem ser agrupados em "Falha de Motor". Dados: ${JSON.stringify(dataWithIds)}`;
-            
-            const payload = {
-                contents: [{ role: "user", parts: [{ text: prompt }] }],
-                generationConfig: {
-                    responseMimeType: "application/json",
-                    responseSchema: {
-                        type: "ARRAY",
-                        items: {
-                            type: "OBJECT",
-                            properties: {
-                                "problemGroup": { "type": "STRING" },
-                                "frequency": { "type": "NUMBER" },
-                                "totalHours": { "type": "NUMBER" },
-                                "orderIds": { "type": "ARRAY", "items": { "type": "NUMBER" } }
-                            },
-                            required: ["problemGroup", "frequency", "totalHours", "orderIds"]
-                        }
-                    }
+async function analyzeWithGemini(ordersData, buttonElement) {
+    buttonElement.disabled = true;
+    // Loading spinner
+    buttonElement.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-700 dark:text-gray-300 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+    
+    const dataWithIds = ordersData.map((order, index) => ({ ...order, originalId: index }));
+    
+    const prompt = `Analise a seguinte lista de ordens de manutenção (com 'title', 'downtime' e 'originalId'). Agrupe problemas que são semanticamente similares. Para cada grupo, crie um "problemGroup" curto. Calcule a "frequency" (número de ocorrências) e "totalHours" (soma dos downtimes) para cada grupo. Para cada grupo, retorne também um array "orderIds" contendo os 'originalId' das ordens que pertencem a ele. O resultado final deve ser um array de objetos JSON puro. Exemplo de agrupamento: "motor quebrou" e "falha no motor principal" devem ser agrupados em "Falha de Motor". Dados: ${JSON.stringify(dataWithIds)}`;
+    
+    const payload = {
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: "ARRAY",
+                items: {
+                    type: "OBJECT",
+                    properties: {
+                        "problemGroup": { "type": "STRING" },
+                        "frequency": { "type": "NUMBER" },
+                        "totalHours": { "type": "NUMBER" },
+                        "orderIds": { "type": "ARRAY", "items": { "type": "NUMBER" } }
+                    },
+                    required: ["problemGroup", "frequency", "totalHours", "orderIds"]
                 }
-            };
-            
-            const apiKey = "AIzaSyAthvAnLTMUAAACtHptjy3n5sJbkTa9laE"; 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-
-            try {
-                const result = await fetchWithBackoff(apiUrl, payload);
-                
-                if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts.length > 0) {
-                    const text = result.candidates[0].content.parts[0].text;
-                    return JSON.parse(text);
-                } else {
-                    throw new Error("Resposta da API inválida ou vazia.");
-                }
-            } catch (error) {
-                console.error("Erro ao analisar com Gemini:", error);
-                showMessage(`Erro na análise com IA: ${error.message}`, 'error');
-                return null;
-            } finally {
-                buttonElement.disabled = false;
-                buttonElement.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v0A2.5 2.5 0 0 1 9.5 7v0A2.5 2.5 0 0 1 7 9.5v0A2.5 2.5 0 0 1 9.5 12v0A2.5 2.5 0 0 1 7 14.5v0A2.5 2.5 0 0 1 9.5 17v0A2.5 2.5 0 0 1 7 19.5v0a2.5 2.5 0 0 1 2.5 2.5"/><path d="M14.5 2a2.5 2.5 0 0 0-2.5 2.5v0A2.5 2.5 0 0 0 14.5 7v0A2.5 2.5 0 0 0 17 9.5v0A2.5 2.5 0 0 0 14.5 12v0A2.5 2.5 0 0 0 17 14.5v0A2.5 2.5 0 0 0 14.5 17v0A2.5 2.5 0 0 0 17 19.5v0a2.5 2.5 0 0 0-2.5 2.5"/></svg>`;
             }
         }
+    };
+    
+    // --- ATENÇÃO: COLOQUE SUA API KEY VÁLIDA AQUI ---
+    const apiKey = "AIzaSyAthvAnLTMUAAACtHptjy3n5sJbkTa9laE"; 
+    
+    // CORREÇÃO 1: Uso do modelo estável gemini-1.5-flash
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+    try {
+        const result = await fetchWithBackoff(apiUrl, payload);
+        
+        if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts.length > 0) {
+            const text = result.candidates[0].content.parts[0].text;
+            
+            // CORREÇÃO 2: Limpeza do Markdown antes de fazer o Parse
+            const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            
+            return JSON.parse(cleanText);
+        } else {
+            throw new Error("Resposta da API inválida ou vazia.");
+        }
+    } catch (error) {
+        console.error("Erro ao analisar com Gemini:", error);
+        showMessage(`Erro na análise com IA: ${error.message}`, 'error');
+        return null;
+    } finally {
+        buttonElement.disabled = false;
+        // Restaura o ícone original
+        buttonElement.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v0A2.5 2.5 0 0 1 9.5 7v0A2.5 2.5 0 0 1 7 9.5v0A2.5 2.5 0 0 1 9.5 12v0A2.5 2.5 0 0 1 7 14.5v0A2.5 2.5 0 0 1 9.5 17v0A2.5 2.5 0 0 1 7 19.5v0a2.5 2.5 0 0 1 2.5 2.5"/><path d="M14.5 2a2.5 2.5 0 0 0-2.5 2.5v0A2.5 2.5 0 0 0 14.5 7v0A2.5 2.5 0 0 0 17 9.5v0A2.5 2.5 0 0 0 14.5 12v0A2.5 2.5 0 0 0 17 14.5v0A2.5 2.5 0 0 0 14.5 17v0A2.5 2.5 0 0 0 17 19.5v0a2.5 2.5 0 0 0-2.5 2.5"/></svg>`;
+    }
+}
         
         function createParetoChart(data, machineId, sortBy = 'hours') {
             if (paretoChartInstance) {
@@ -2099,7 +2108,7 @@
 
             const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
             const apiKey = "AIzaSyAthvAnLTMUAAACtHptjy3n5sJbkTa9laE"; 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
             try {
                 const result = await fetchWithBackoff(apiUrl, payload);
@@ -2226,7 +2235,7 @@
 
             const apiKey = "AIzaSyAthvAnLTMUAAACtHptjy3n5sJbkTa9laE";
             const payload = { contents: [{ role: "user", parts: [{ text: contextualPrompt }] }] };
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
             try {
                 const result = await fetchWithBackoff(apiUrl, payload);
