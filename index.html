@@ -1348,7 +1348,7 @@ async function analyzeWithGemini(ordersData, buttonElement) {
 
     // --- VERIFIQUE SUA CHAVE AQUI ---
     const apiKey = "AIzaSyAthvAnLTMUAAACtHptjy3n5sJbkTa9laE"; 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-001:generateContent?key=${apiKey}`;
 
     try {
         console.log("Enviando dados para o Gemini..."); // Log para Debug
@@ -2122,7 +2122,7 @@ async function analyzeWithGemini(ordersData, buttonElement) {
 
             const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
             const apiKey = "AIzaSyAthvAnLTMUAAACtHptjy3n5sJbkTa9laE"; 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-001:generateContent?key=${apiKey}`;
 
             try {
                 const result = await fetchWithBackoff(apiUrl, payload);
@@ -2249,7 +2249,7 @@ async function analyzeWithGemini(ordersData, buttonElement) {
 
             const apiKey = "AIzaSyAthvAnLTMUAAACtHptjy3n5sJbkTa9laE";
             const payload = { contents: [{ role: "user", parts: [{ text: contextualPrompt }] }] };
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-001:generateContent?key=${apiKey}`;
 
             try {
                 const result = await fetchWithBackoff(apiUrl, payload);
