@@ -1331,7 +1331,6 @@ async function analyzeWithGemini(ordersData, buttonElement) {
 
     const dataWithIds = ordersData.map((order, index) => ({ ...order, originalId: index }));
     
-    // Prompt reforçado para garantir o formato
     const prompt = `Você é um analisador de dados JSON. Analise estas ordens de manutenção.
     Agrupe problemas similares em categorias ("problemGroup").
     Retorne APENAS um ARRAY JSON. Sem Markdown, sem explicações.
@@ -1341,18 +1340,18 @@ async function analyzeWithGemini(ordersData, buttonElement) {
     const payload = {
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         generationConfig: {
-            temperature: 0.2, // Reduz criatividade para focar em precisão
+            temperature: 0.2,
             responseMimeType: "application/json" 
         }
     };
 
-    // --- VERIFIQUE SUA CHAVE AQUI ---
-    const apiKey = "AIzaSyAyqSS9giqiY9mJpMLseTuGMG3HmlpVQ1U"; 
-    // Usando o modelo confirmado da sua lista
-const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-001:generateContent?key=${apiKey}`;
+    // --- MUDANÇA DE SEGURANÇA AQUI ---
+    // Usando seu Cloudflare Worker (A chave está segura lá no servidor)
+    const apiUrl = "https://indicadores.luanfprz.workers.dev";
 
     try {
-        console.log("Enviando dados para o Gemini..."); // Log para Debug
+        console.log("Enviando dados para o Proxy Seguro...");
+        // Usamos fetch simples aqui pois o Worker já trata erros, mas mantive o backoff se precisar
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1361,24 +1360,20 @@ const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2
 
         if (!response.ok) {
             const errDetails = await response.text();
-            throw new Error(`Erro na API (${response.status}): ${errDetails}`);
+            throw new Error(`Erro na API/Proxy (${response.status}): ${errDetails}`);
         }
 
         const result = await response.json();
         
         if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts.length > 0) {
             let text = result.candidates[0].content.parts[0].text;
-            console.log("Resposta Bruta do Gemini:", text); // Veja isso no Console (F12)
-
-            // --- TÉCNICA DE LIMPEZA ROBUSTA ---
-            // Encontra o primeiro '[' e o último ']' para pegar só o array
+            
             const firstBracket = text.indexOf('[');
             const lastBracket = text.lastIndexOf(']');
             
             if (firstBracket !== -1 && lastBracket !== -1) {
                 text = text.substring(firstBracket, lastBracket + 1);
                 const jsonResult = JSON.parse(text);
-                console.log("JSON Parseado com sucesso:", jsonResult);
                 return jsonResult;
             } else {
                 throw new Error("A IA não retornou um Array JSON válido.");
@@ -1389,7 +1384,7 @@ const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2
 
     } catch (error) {
         console.error("Erro CRÍTICO na análise:", error);
-        alert(`Erro ao analisar: ${error.message}. Verifique o Console (F12) para detalhes.`);
+        alert(`Erro ao analisar: ${error.message}.`);
         return null;
     } finally {
         buttonElement.disabled = false;
@@ -2103,47 +2098,46 @@ const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2
             generateKpiChart(kpiType, ccResults, 'costCenter', rank, limit);
         }
 
-        async function generateSolutionGuide(orders, machineId, buttonElement) {
-            if (!domElements.solutionDetailsColumnSelect.value) {
-                showMessage('Por favor, mapeie a "Coluna Detalhes da Solução" para gerar o guia.', 'warning');
-                return;
-            }
+       async function generateSolutionGuide(orders, machineId, buttonElement) {
+    if (!domElements.solutionDetailsColumnSelect.value) {
+        showMessage('Por favor, mapeie a "Coluna Detalhes da Solução" para gerar o guia.', 'warning');
+        return;
+    }
 
-            buttonElement.disabled = true;
-            buttonElement.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-700 dark:text-gray-300 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+    buttonElement.disabled = true;
+    buttonElement.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-700 dark:text-gray-300 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
 
-            const problemSolutionPairs = orders.map(o => ({ problem: o.title, solution: o.solution }));
-            const prompt = `Como um engenheiro de manutenção sênior, analise a lista de problemas (problem) e as soluções aplicadas (solution) para o ativo ${machineId}. 
-            1. Identifique os 3 problemas mais críticos (baseado em frequência e/ou similaridade).
-            2. Para cada problema crítico, sintetize as soluções aplicadas e crie um guia de solução de problemas "passo a passo" claro e conciso em formato HTML.
-            3. Use tags <h4> para o título de cada problema e listas ordenadas <ol> com <li> para os passos da solução. Formate o texto com negrito (<b>) para destacar peças ou ações importantes.
+    const problemSolutionPairs = orders.map(o => ({ problem: o.title, solution: o.solution }));
+    const prompt = `Como um engenheiro de manutenção sênior, analise a lista de problemas (problem) e as soluções aplicadas (solution) para o ativo ${machineId}. 
+    1. Identifique os 3 problemas mais críticos (baseado em frequência e/ou similaridade).
+    2. Para cada problema crítico, sintetize as soluções aplicadas e crie um guia de solução de problemas "passo a passo" claro e conciso em formato HTML.
+    3. Use tags <h4> para o título de cada problema e listas ordenadas <ol> com <li> para os passos da solução. Formate o texto com negrito (<b>) para destacar peças ou ações importantes.
 
-            Dados: ${JSON.stringify(problemSolutionPairs)}
-            `;
+    Dados: ${JSON.stringify(problemSolutionPairs)}
+    `;
 
-            const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
-            const apiKey = "AIzaSyAyqSS9giqiY9mJpMLseTuGMG3HmlpVQ1U"; 
-            // Usando o modelo confirmado da sua lista
-const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-001:generateContent?key=${apiKey}`;
+    const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+    
+    // --- MUDANÇA DE SEGURANÇA AQUI ---
+    const apiUrl = "https://indicadores.luanfprz.workers.dev";
 
-            try {
-                const result = await fetchWithBackoff(apiUrl, payload);
-                
-                if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts.length > 0) {
-                    const guideHtml = result.candidates[0].content.parts[0].text;
-                    displaySolutionGuide(guideHtml, machineId);
-                } else {
-                    throw new Error("Resposta da API inválida ou vazia.");
-                }
-            } catch (error) {
-                console.error("Erro ao gerar guia de soluções:", error);
-                showMessage(`Erro na análise com IA: ${error.message}`, 'error');
-            } finally {
-                buttonElement.disabled = false;
-                buttonElement.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>`;
-            }
+    try {
+        const result = await fetchWithBackoff(apiUrl, payload);
+        
+        if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts.length > 0) {
+            const guideHtml = result.candidates[0].content.parts[0].text;
+            displaySolutionGuide(guideHtml, machineId);
+        } else {
+            throw new Error("Resposta da API inválida ou vazia.");
         }
-
+    } catch (error) {
+        console.error("Erro ao gerar guia de soluções:", error);
+        showMessage(`Erro na análise com IA: ${error.message}`, 'error');
+    } finally {
+        buttonElement.disabled = false;
+        buttonElement.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>`;
+    }
+}
         function displaySolutionGuide(htmlContent, machineId) {
             domElements.solutionGuideTitle.textContent = `Guia de Soluções para Ativo: ${machineId}`;
             domElements.solutionGuideContent.innerHTML = htmlContent;
@@ -2242,30 +2236,31 @@ const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2
             };
         }
 
-        async function getChatbotResponse(question) {
-            const { prompt: contextualPrompt, hasData } = await generateContextualPrompt(question);
+async function getChatbotResponse(question) {
+    const { prompt: contextualPrompt, hasData } = await generateContextualPrompt(question);
 
-            if (!hasData) {
-                return contextualPrompt;
-            }
+    if (!hasData) {
+        return contextualPrompt;
+    }
 
-            const apiKey = "AIzaSyAyqSS9giqiY9mJpMLseTuGMG3HmlpVQ1U";
-            const payload = { contents: [{ role: "user", parts: [{ text: contextualPrompt }] }] };
-            // Usando o modelo confirmado da sua lista
-const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-001:generateContent?key=${apiKey}`;
+    // --- MUDANÇA DE SEGURANÇA AQUI ---
+    // Sem apiKey exposta, apenas o link do Worker
+    const apiUrl = "https://indicadores.luanfprz.workers.dev";
+    
+    const payload = { contents: [{ role: "user", parts: [{ text: contextualPrompt }] }] };
 
-            try {
-                const result = await fetchWithBackoff(apiUrl, payload);
-                if (result.candidates && result.candidates.length > 0 && result.candidates[0].content && result.candidates[0].content.parts.length > 0) {
-                    return result.candidates[0].content.parts[0].text;
-                } else {
-                    return "Desculpe, não consegui gerar uma resposta com os dados fornecidos.";
-                }
-            } catch (error) {
-                console.error("Erro na API do Chatbot:", error);
-                return `Desculpe, ocorreu um erro ao processar sua pergunta: ${error.message}.`;
-            }
+    try {
+        const result = await fetchWithBackoff(apiUrl, payload);
+        if (result.candidates && result.candidates.length > 0 && result.candidates[0].content && result.candidates[0].content.parts.length > 0) {
+            return result.candidates[0].content.parts[0].text;
+        } else {
+            return "Desculpe, não consegui gerar uma resposta com os dados fornecidos.";
         }
+    } catch (error) {
+        console.error("Erro na API do Chatbot:", error);
+        return `Desculpe, ocorreu um erro ao processar sua pergunta: ${error.message}.`;
+    }
+}
 
         async function handleChatSubmit() {
             const userInput = domElements.chatInput.value.trim();
