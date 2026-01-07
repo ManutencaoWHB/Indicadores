@@ -1347,9 +1347,9 @@ async function analyzeWithGemini(ordersData, buttonElement) {
     };
 
     // --- VERIFIQUE SUA CHAVE AQUI ---
-    const apiKey = "AIzaSyAthvAnLTMUAAACtHptjy3n5sJbkTa9laE"; 
+    const apiKey = "AIzaSyAyqSS9giqiY9mJpMLseTuGMG3HmlpVQ1U"; 
     // Usando o modelo confirmado da sua lista
-const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-001:generateContent?key=${apiKey}`;
 
     try {
         console.log("Enviando dados para o Gemini..."); // Log para Debug
@@ -2122,9 +2122,9 @@ const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2
             `;
 
             const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
-            const apiKey = "AIzaSyAthvAnLTMUAAACtHptjy3n5sJbkTa9laE"; 
+            const apiKey = "AIzaSyAyqSS9giqiY9mJpMLseTuGMG3HmlpVQ1U"; 
             // Usando o modelo confirmado da sua lista
-const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-001:generateContent?key=${apiKey}`;
 
             try {
                 const result = await fetchWithBackoff(apiUrl, payload);
@@ -2249,10 +2249,10 @@ const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2
                 return contextualPrompt;
             }
 
-            const apiKey = "AIzaSyAthvAnLTMUAAACtHptjy3n5sJbkTa9laE";
+            const apiKey = "AIzaSyAyqSS9giqiY9mJpMLseTuGMG3HmlpVQ1U";
             const payload = { contents: [{ role: "user", parts: [{ text: contextualPrompt }] }] };
             // Usando o modelo confirmado da sua lista
-const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-001:generateContent?key=${apiKey}`;
 
             try {
                 const result = await fetchWithBackoff(apiUrl, payload);
