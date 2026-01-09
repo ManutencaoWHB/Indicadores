@@ -12,68 +12,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script>
-const GOOGLE_SHEETS_CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTtB5HFqn9ZvEa4SAPReYcpDI5XyQSbahgWJBxNFVlYedeKvs9PnmdH9dEcPubS1EFHczPOS4cdPQE3/pub?gid=266670542&single=true&output=csv";
-</script>
-
-<script>
-async function loadDataFromGoogleSheets() {
-    try {
-        const response = await fetch(GOOGLE_SHEETS_CSV_URL);
-        if (!response.ok) {
-            throw new Error("Erro ao acessar a planilha");
-        }
-
-        const csvText = await response.text();
-        const json = csvToJson(csvText);
-
-        jsonData = json; // 🔥 usa a mesma variável que seu sistema já usa
-
-        if (!jsonData || jsonData.length === 0) {
-            showMessage("A planilha está vazia.", "warning");
-            return;
-        }
-
-        // Extrai cabeçalhos
-        const headers = Object.keys(jsonData[0]);
-        populateSelectors(headers);
-
-        showMessage("Planilha carregada automaticamente do Google Drive.", "success");
-
-        // Atualiza telas
-        document.getElementById("analyzer-no-data")?.classList.add("hidden");
-        document.getElementById("analysis-section")?.classList.remove("hidden");
-
-    } catch (error) {
-        console.error(error);
-        showMessage("Erro ao carregar dados do Google Sheets.", "error");
-    }
-}
-</script>
-
-<script>
-function csvToJson(csv) {
-    const lines = csv.split("\n").filter(l => l.trim() !== "");
-    const headers = lines[0].split(",").map(h => h.trim());
-
-    const data = [];
-
-    for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(",");
-        const obj = {};
-
-        headers.forEach((header, index) => {
-            obj[header] = values[index]?.trim() ?? "";
-        });
-
-        data.push(obj);
-    }
-
-    return data;
-}
-</script>
-
-    <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
@@ -3309,12 +3247,53 @@ async function getChatbotResponse(question) {
             applyTheme();
             switchPage('analyzer-page'); // Inicia na página do analisador
         });
-    </script>
+    
+// ======================
+// GOOGLE SHEETS AUTO LOAD
+// ======================
+const GOOGLE_SHEETS_CSV_URL =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vTtB5HFqn9ZvEa4SAPReYcpDI5XyQSbahgWJBxNFVlYedeKvs9PnmdH9dEcPubS1EFHczPOS4cdPQE3/pub?gid=266670542&single=true&output=csv";
 
-    <script>
+function csvToJson(csv) {
+    const lines = csv.split("\n").filter(l => l.trim() !== "");
+    const headers = lines[0].split(",").map(h => h.trim());
+    const data = [];
+    for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(",");
+        const obj = {};
+        headers.forEach((header, index) => {
+            obj[header] = values[index]?.trim() ?? "";
+        });
+        data.push(obj);
+    }
+    return data;
+}
+
+async function loadDataFromGoogleSheets() {
+    try {
+        const response = await fetch(GOOGLE_SHEETS_CSV_URL);
+        if (!response.ok) throw new Error("Erro ao acessar planilha");
+        const csvText = await response.text();
+        jsonData = csvToJson(csvText);
+        if (!jsonData || jsonData.length === 0) {
+            showMessage("A planilha está vazia.", "warning");
+            return;
+        }
+        const headers = Object.keys(jsonData[0]);
+        populateSelectors(headers);
+        showMessage("Planilha carregada automaticamente do Google Drive.", "success");
+        document.getElementById("analyzer-no-data")?.classList.add("hidden");
+        document.getElementById("analysis-section")?.classList.remove("hidden");
+    } catch (err) {
+        console.error(err);
+        showMessage("Erro ao carregar dados do Google Sheets.", "error");
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     loadDataFromGoogleSheets();
 });
+
 </script>
 </body>
 </html>
