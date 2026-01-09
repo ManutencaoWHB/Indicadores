@@ -138,67 +138,6 @@
 <body class="antialiased bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
 
 <div class="flex h-screen bg-gray-100 dark:bg-gray-900">
-<div id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 shadow-md flex-shrink-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out z-40 flex flex-col">
-        <div class="p-4 border-b dark:border-gray-700">
-            <h2 class="text-xl font-bold text-gray-900 dark:text-white">Menu Principal</h2>
-        </div>
-        
-        <nav class="mt-4 flex-1 overflow-y-auto">
-            <a href="#" id="nav-analyzer" class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 nav-active hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                Analisador de Indicadores
-            </a>
-            <a href="#" id="nav-dashboard" class="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                Dashboard
-            </a>
-            <a href="#" id="nav-chatbot" class="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                Chatbot da Manutenção
-            </a>
-        </nav>
-        
-        <div class="p-4 border-t dark:border-gray-700">
-            <button id="theme-toggle" type="button" class="w-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none rounded-lg text-sm p-2.5 transition-colors">
-                <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-                <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
-                <span class="ml-2">Alternar Tema</span>
-            </button>
-        </div>
-    </div>
-        
-        <div class="mt-auto p-4 border-t dark:border-gray-700">
-            <button id="theme-toggle" type="button" class="w-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 transition-colors duration-200">
-                <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-                <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
-                <span class="ml-2">Alternar Tema</span>
-            </button>
-        </div>
-    </div>
-
-            <nav class="mt-4">
-                <a href="#" id="nav-analyzer" class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 nav-active">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                    Analisador de Indicadores
-                </a>
-                <a href="#" id="nav-dashboard" class="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                    Dashboard
-                </a>
-                <a href="#" id="nav-chatbot" class="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                    Chatbot da Manutenção
-                </a>
-            </nav>
-        </div>
-        <div class="mt-auto p-4 border-t dark:border-gray-700">
-            <button id="theme-toggle" type="button" class="w-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
-                <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-                <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
-                <span class="ml-2">Alternar Tema</span>
-            </button>
-        </div>
-    </div>
 
     <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
 
@@ -688,35 +627,29 @@
             return parseFloat(String(value).replace(/\./g, '').replace(',', '.'));
         };
 
-     function combineDateAndTime(dateVal, timeVal) {
+function combineDateAndTime(dateVal, timeVal) {
             if (dateVal == null) return null;
             let year, month, day;
 
-            // Transforma em texto para analisar
             const dateStr = String(dateVal).trim().split(' ')[0];
 
-            // 1. FORMATO GOOGLE SHEETS (YYYY-MM-DD) -> Ex: 2026-01-08
+            // Formato ISO (YYYY-MM-DD)
             if (/^\d{4}-\d{1,2}-\d{1,2}/.test(dateStr)) {
                 const parts = dateStr.split('-');
                 year = parseInt(parts[0], 10);
                 month = parseInt(parts[1], 10);
                 day = parseInt(parts[2], 10);
             }
-            // 2. FORMATO BRASILEIRO (DD/MM/YYYY) -> Ex: 08/01/2026
+            // Formato Brasileiro (DD/MM/YYYY)
             else if (/^\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}/.test(dateStr)) {
                 const parts = dateStr.split(/[\/-]/);
-                const p1 = parseInt(parts[0], 10);
-                const p2 = parseInt(parts[1], 10);
-                const p3 = parseInt(parts[2], 10);
-                
-                // Regra BR: Primeiro número é DIA
-                day = p1;
-                month = p2;
-                
-                // Ajusta ano abreviado (26 -> 2026)
-                year = p3 < 100 ? (p3 < 50 ? 2000 + p3 : 1900 + p3) : p3;
+                day = parseInt(parts[0], 10);
+                month = parseInt(parts[1], 10);
+                // Lida com ano de 2 ou 4 digitos
+                const yPart = parseInt(parts[2], 10);
+                year = yPart < 100 ? (yPart < 50 ? 2000 + yPart : 1900 + yPart) : yPart;
             }
-            // 3. FORMATO EXCEL (NÚMERO)
+            // Número serial do Excel
             else if (typeof dateVal === 'number') {
                 const excelEpoch = new Date(1899, 11, 30);
                 const dateObj = new Date(excelEpoch.getTime() + dateVal * 86400000);
@@ -731,7 +664,7 @@
 
             let dateObj = new Date(Date.UTC(year, month - 1, day));
 
-            // Processamento da Hora
+            // Processamento da Hora (mantido igual)
             if (timeVal != null) {
                 if (typeof timeVal === 'number' && timeVal >= 0 && timeVal < 1) {
                     const totalSeconds = Math.round(timeVal * 86400);
@@ -961,27 +894,25 @@ function handleDateFilterChange() {
         }
 
 function autoMapColumns(headers) {
-            // Lista de termos para procurar (adicionei variações comuns para garantir)
             const columnMappings = {
                 'machine-column': ['bem', 'ativo', 'maquina', 'equipamento', 'codigo', 'asset'],
                 'asset-name-column': ['nome do bem', 'nome', 'descricao', 'description', 'nome_bem'],
-                'downtime-column': ['Hora Total', 'duracao', 'tempo parada', 'downtime', 'horas', 'total_horas', 'total horas', 'duração'],
+                // AQUI: Adicionei "Hr. Parada" que vi no seu print
+                'downtime-column': ['hr. parada', 'hora total', 'duracao', 'tempo parada', 'downtime', 'horas', 'total_horas', 'total horas', 'duração'],
                 'service-order-column': ['ordem', 'os', 'service order', 'ordem_servico', 'numero_ordem', 'n ordem'],
                 'order-title-column': ['titulo', 'title', 'descricao ordem', 'motivo', 'observacao', 'problema'],
                 'start-date-column': ['dt. par. real ini', 'data inicio', 'data abertura', 'start date', 'data_inicio', 'data'],
                 'start-time-column': ['hr. par. real ini', 'hora inicio', 'hora abertura', 'start time', 'hora_inicio', 'hora'],
                 'cost-center-column': ['desc. c.custo', 'desc c.custo', 'desc c custo', 'centro de custo', 'linha', 'linha de producao'],
-                'solution-details-column': ['Insumos', 'detalhe servico', 'acao executada', 'detalhes da solucao', 'servico executado']
+                'solution-details-column': ['insumos', 'detalhe servico', 'acao executada', 'detalhes da solucao', 'servico executado', 'solucao']
             };
 
-            // Função de limpeza melhorada: remove acentos, pontos, símbolos e espaços duplos
             const normalizeString = (str) => {
                 if (!str) return '';
                 return str.toString()
                     .toLowerCase()
-                    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove acentos
-                    .replace(/[^a-z0-9\s]/g, '') // Remove tudo que não for letra ou número (pontos, traços, etc)
-                    .replace(/\s+/g, ' ') // Transforma espaços duplos em simples
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                    .replace(/[^a-z0-9\s]/g, '') // Remove pontos e símbolos para comparação
                     .trim();
             };
 
@@ -992,25 +923,22 @@ function autoMapColumns(headers) {
                 const patterns = columnMappings[selectId];
                 let matchedHeader = null;
 
-                // Tentativa 1: Busca Exata (após limpeza)
+                // Tenta encontrar correspondência exata ou parcial
                 for (const header of headers) {
                     const normalizedHeader = normalizeString(header);
-                    if (patterns.some(p => normalizedHeader === normalizeString(p))) { 
+                    if (patterns.some(p => normalizedHeader === normalizeString(p) || normalizedHeader.includes(normalizeString(p)))) { 
                         matchedHeader = header; 
                         break; 
                     }
                 }
 
-                // Tentativa 2: Busca Parcial (se o termo estiver contido no cabeçalho)
-                if (!matchedHeader) {
-                    for (const header of headers) {
-                        const normalizedHeader = normalizeString(header);
-                        if (patterns.some(p => normalizedHeader.includes(normalizeString(p)))) { 
-                            matchedHeader = header; 
-                            break; 
-                        }
-                    }
+                if (matchedHeader && selectElement) {
+                    selectElement.value = matchedHeader;
+                    selectElement.style.backgroundColor = '#dcfce7'; 
+                    selectElement.style.borderColor = '#16a34a';
                 }
+            });
+        }
 
                 // Se encontrou, seleciona e pisca em verde
                 if (matchedHeader && selectElement) {
