@@ -139,26 +139,33 @@
 
 <div class="flex h-screen bg-gray-100 dark:bg-gray-900">
 <div id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 shadow-md flex-shrink-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out z-40 flex flex-col">
-        <div>
-            <div class="p-4 border-b dark:border-gray-700">
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Menu Principal</h2>
-            </div>
-            
-            <nav class="mt-4">
-                <a href="#" id="nav-analyzer" class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 nav-active transition-colors duration-200">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                    Analisador de Indicadores
-                </a>
-                <a href="#" id="nav-dashboard" class="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                    Dashboard
-                </a>
-                <a href="#" id="nav-chatbot" class="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                    Chatbot da Manutenção
-                </a>
-            </nav>
+        <div class="p-4 border-b dark:border-gray-700">
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white">Menu Principal</h2>
         </div>
+        
+        <nav class="mt-4 flex-1 overflow-y-auto">
+            <a href="#" id="nav-analyzer" class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 nav-active hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                Analisador de Indicadores
+            </a>
+            <a href="#" id="nav-dashboard" class="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                Dashboard
+            </a>
+            <a href="#" id="nav-chatbot" class="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                Chatbot da Manutenção
+            </a>
+        </nav>
+        
+        <div class="p-4 border-t dark:border-gray-700">
+            <button id="theme-toggle" type="button" class="w-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none rounded-lg text-sm p-2.5 transition-colors">
+                <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+                <span class="ml-2">Alternar Tema</span>
+            </button>
+        </div>
+    </div>
         
         <div class="mt-auto p-4 border-t dark:border-gray-700">
             <button id="theme-toggle" type="button" class="w-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 transition-colors duration-200">
@@ -681,35 +688,35 @@
             return parseFloat(String(value).replace(/\./g, '').replace(',', '.'));
         };
 
-        function combineDateAndTime(dateVal, timeVal) {
+     function combineDateAndTime(dateVal, timeVal) {
             if (dateVal == null) return null;
             let year, month, day;
 
-            // Converte para texto para analisar o formato
+            // Transforma em texto para analisar
             const dateStr = String(dateVal).trim().split(' ')[0];
 
-            // 1. Tenta formato Internacional (Google Sheets as vezes manda assim): 2026-01-08
+            // 1. FORMATO GOOGLE SHEETS (YYYY-MM-DD) -> Ex: 2026-01-08
             if (/^\d{4}-\d{1,2}-\d{1,2}/.test(dateStr)) {
                 const parts = dateStr.split('-');
                 year = parseInt(parts[0], 10);
                 month = parseInt(parts[1], 10);
                 day = parseInt(parts[2], 10);
             }
-            // 2. Tenta formato Brasileiro: 08/01/2026
+            // 2. FORMATO BRASILEIRO (DD/MM/YYYY) -> Ex: 08/01/2026
             else if (/^\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}/.test(dateStr)) {
                 const parts = dateStr.split(/[\/-]/);
                 const p1 = parseInt(parts[0], 10);
                 const p2 = parseInt(parts[1], 10);
                 const p3 = parseInt(parts[2], 10);
                 
-                // Força a interpretação BR: Primeiro número é SEMPRE o dia
+                // Regra BR: Primeiro número é DIA
                 day = p1;
                 month = p2;
                 
-                // Ajusta ano abreviado (ex: 26 vira 2026)
+                // Ajusta ano abreviado (26 -> 2026)
                 year = p3 < 100 ? (p3 < 50 ? 2000 + p3 : 1900 + p3) : p3;
             }
-            // 3. Tenta formato numérico do Excel
+            // 3. FORMATO EXCEL (NÚMERO)
             else if (typeof dateVal === 'number') {
                 const excelEpoch = new Date(1899, 11, 30);
                 const dateObj = new Date(excelEpoch.getTime() + dateVal * 86400000);
@@ -722,10 +729,9 @@
 
             if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
 
-            // Cria a data
             let dateObj = new Date(Date.UTC(year, month - 1, day));
 
-            // Adiciona a hora se houver
+            // Processamento da Hora
             if (timeVal != null) {
                 if (typeof timeVal === 'number' && timeVal >= 0 && timeVal < 1) {
                     const totalSeconds = Math.round(timeVal * 86400);
@@ -3210,8 +3216,8 @@ async function getChatbotResponse(question) {
         // ... (todo o código anterior permanece igual até chegar aqui)
 
         // FUNÇÃO NOVA: Carregar dados direto do Google Sheets
-        async function loadDataFromGoogleDrive() {
-            // Seu link do Google Sheets
+       async function loadDataFromGoogleDrive() {
+            // Seu link do Google
             const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTtB5HFqn9ZvEa4SAPReYcpDI5XyQSbahgWJBxNFVlYedeKvs9PnmdH9dEcPubS1EFHczPOS4cdPQE3/pub?gid=266670542&single=true&output=csv"; 
 
             if (!googleSheetUrl || googleSheetUrl.includes("COLE_SEU_LINK")) return;
@@ -3221,34 +3227,25 @@ async function getChatbotResponse(question) {
                 domElements.fileNameDisplay.textContent = "Conectando ao Google Drive...";
                 
                 const response = await fetch(googleSheetUrl);
-                
                 if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
 
                 const csvText = await response.text();
                 
-                // Lê o arquivo
+                // Lê como STRING para evitar bugs de conversão automática
                 const workbook = XLSX.read(csvText, { type: 'string' });
                 const sheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[sheetName];
                 
-                // --- A CORREÇÃO ESTÁ AQUI ---
-                // Adicionamos 'defval: ""'. Isso obriga o sistema a listar a coluna 
-                // mesmo que a célula esteja vazia na primeira linha.
+                // O COMANDO MÁGICO "defval" FAZ AS COLUNAS VAZIAS APARECEREM
                 jsonData = XLSX.utils.sheet_to_json(worksheet, { 
                     raw: false, 
                     dateNF: 'dd/mm/yyyy',
-                    defval: ""  // <--- ISSO VAI FAZER AS COLUNAS K e AM APARECEREM
+                    defval: "" 
                 });
 
                 if (jsonData.length === 0) throw new Error("A planilha recebida está vazia.");
 
-                // Agora pegamos os cabeçalhos de forma mais segura
-                // Pegamos o primeiro item, que agora garantidamente tem todas as chaves graças ao defval
                 const headers = Object.keys(jsonData[0]);
-                
-                // Depuração: Mostra no console do navegador quais colunas ele achou (opcional)
-                console.log("Colunas encontradas:", headers);
-
                 populateSelectors(headers);
                 updateReportDateRange();
                 populateProductionLineFilter();
