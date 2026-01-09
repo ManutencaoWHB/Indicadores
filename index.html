@@ -3150,7 +3150,58 @@ async function getChatbotResponse(question) {
             });
         }
 
+// ... (todo o código anterior permanece igual até chegar aqui)
+
+        // FUNÇÃO NOVA: Carregar dados direto do Google Sheets
+        async function loadDataFromGoogleDrive() {
+            // COLE O SEU LINK DO PASSO 1 AQUI DENTRO DAS ASPAS:
+            const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTtB5HFqn9ZvEa4SAPReYcpDI5XyQSbahgWJBxNFVlYedeKvs9PnmdH9dEcPubS1EFHczPOS4cdPQE3/pub?gid=266670542&single=true&output=csv"; 
+
+            // Se você não colocou o link ainda, não faz nada
+            if (googleSheetUrl === "https://docs.google.com/spreadsheets/d/e/2PACX-1vTtB5HFqn9ZvEa4SAPReYcpDI5XyQSbahgWJBxNFVlYedeKvs9PnmdH9dEcPubS1EFHczPOS4cdPQE3/pub?gid=266670542&single=true&output=csv" || !googleSheetUrl) return;
+
+            try {
+                // Mostra mensagem de carregando
+                domElements.fileNameDisplay.textContent = "Buscando dados no Google Drive...";
+                
+                const response = await fetch(googleSheetUrl);
+                
+                if (!response.ok) throw new Error("Erro ao acessar a planilha");
+
+                const data = await response.arrayBuffer();
+                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                const sheetName = workbook.SheetNames[0]; // Pega a primeira aba
+                const worksheet = workbook.Sheets[sheetName];
+                
+                jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false, dateNF: 'dd/mm/yyyy' });
+
+                if (jsonData.length === 0) throw new Error("A planilha parece estar vazia.");
+
+                // Configurações automáticas (igual ao upload manual)
+                const headers = Object.keys(jsonData[0]);
+                populateSelectors(headers);
+                updateReportDateRange();
+                populateProductionLineFilter();
+                
+                // Muda para a tela do analisador
+                domElements.fileNameDisplay.textContent = "Dados carregados via Nuvem (Google)";
+                domElements.analysisSection.classList.remove('hidden');
+                domElements.analyzerNoData.classList.add('hidden');
+                domElements.resultsSection.classList.add('hidden');
+                switchPage('analyzer-page');
+                
+                // Opcional: Já clicar em analisar automaticamente se quiser
+                // runAnalysis(); 
+
+            } catch (err) {
+                console.error(err);
+                showMessage("Não foi possível carregar do Google Drive: " + err.message);
+                domElements.fileNameDisplay.textContent = "Erro no carregamento automático.";
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            // ... (Mantenha as definições de domElements aqui, igual já estava)
             domElements = {
                 fileUpload: document.getElementById('file-upload'),
                 fileNameDisplay: document.getElementById('file-name'),
@@ -3254,9 +3305,13 @@ async function getChatbotResponse(question) {
                 kpiTrendMttrGoal: document.getElementById('kpi-trend-mttr-goal'),
                 kpiTrendMtbfGoal: document.getElementById('kpi-trend-mtbf-goal'),
             };
+
             initializeEventListeners();
             applyTheme();
-            switchPage('analyzer-page'); // Inicia na página do analisador
+            switchPage('analyzer-page');
+
+            // CHAMADA AUTOMÁTICA DA FUNÇÃO DO GOOGLE DRIVE
+            loadDataFromGoogleDrive();
         });
     </script>
 </body>
