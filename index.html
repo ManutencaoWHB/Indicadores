@@ -138,22 +138,36 @@
 <body class="antialiased bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
 
 <div class="flex h-screen bg-gray-100 dark:bg-gray-900">
-    <div id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 shadow-md flex-shrink-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out z-40 flex flex-col">
+<div id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 shadow-md flex-shrink-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out z-40 flex flex-col">
         <div>
             <div class="p-4 border-b dark:border-gray-700">
                 <h2 class="text-xl font-bold text-gray-900 dark:text-white">Menu Principal</h2>
             </div>
             
-            <div class="p-4 border-b dark:border-gray-700">
-                 <label for="file-upload" class="file-input-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                    </svg>
-                    <span>Carregar Planilha</span>
-                </label>
-                <input id="file-upload" type="file" accept=".xlsx, .xls, .csv">
-                <p id="file-name" class="mt-2 text-xs text-center text-gray-500 dark:text-gray-400 truncate">Nenhum arquivo.</p>
-            </div>
+            <nav class="mt-4">
+                <a href="#" id="nav-analyzer" class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 nav-active transition-colors duration-200">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    Analisador de Indicadores
+                </a>
+                <a href="#" id="nav-dashboard" class="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    Dashboard
+                </a>
+                <a href="#" id="nav-chatbot" class="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                    Chatbot da Manutenção
+                </a>
+            </nav>
+        </div>
+        
+        <div class="mt-auto p-4 border-t dark:border-gray-700">
+            <button id="theme-toggle" type="button" class="w-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 transition-colors duration-200">
+                <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+                <span class="ml-2">Alternar Tema</span>
+            </button>
+        </div>
+    </div>
 
             <nav class="mt-4">
                 <a href="#" id="nav-analyzer" class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 nav-active">
@@ -671,46 +685,59 @@
             if (dateVal == null) return null;
             let year, month, day;
 
-            if (dateVal instanceof Date) {
-                year = dateVal.getUTCFullYear();
-                month = dateVal.getUTCMonth() + 1;
-                day = dateVal.getUTCDate();
-            } else if (typeof dateVal === 'number') {
+            // Transforma em texto e limpa espaços
+            const dateStr = String(dateVal).trim().split(' ')[0]; // Pega só a parte da data antes do espaço
+
+            // CENÁRIO 1: Formato Internacional do Google (YYYY-MM-DD) -> Ex: 2026-01-05
+            if (/^\d{4}-\d{1,2}-\d{1,2}/.test(dateStr)) {
+                const parts = dateStr.split('-');
+                year = parseInt(parts[0], 10);
+                month = parseInt(parts[1], 10);
+                day = parseInt(parts[2], 10);
+            }
+            // CENÁRIO 2: Formato Brasileiro (DD/MM/YYYY) -> Ex: 05/01/2026
+            else if (/^\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}/.test(dateStr)) {
+                const parts = dateStr.split(/[\/-]/);
+                const p1 = parseInt(parts[0], 10);
+                const p2 = parseInt(parts[1], 10);
+                const p3 = parseInt(parts[2], 10);
+                
+                // No Brasil, o primeiro número é o dia.
+                day = p1;
+                month = p2;
+                
+                // Ajusta ano se vier abreviado (ex: 26 vira 2026)
+                year = p3 < 100 ? (p3 < 50 ? 2000 + p3 : 1900 + p3) : p3;
+            }
+            // CENÁRIO 3: Data do Excel (Número Serial)
+            else if (typeof dateVal === 'number') {
                 const excelEpoch = new Date(1899, 11, 30);
                 const dateObj = new Date(excelEpoch.getTime() + dateVal * 86400000);
                 year = dateObj.getUTCFullYear();
                 month = dateObj.getUTCMonth() + 1;
                 day = dateObj.getUTCDate();
-            } else if (typeof dateVal === 'string') {
-                const parts = String(dateVal).split(' ')[0].split(/[\/-]/);
-                if (parts.length === 3) {
-                    const p1 = parseInt(parts[0], 10);
-                    const p2 = parseInt(parts[1], 10);
-                    const p3 = parseInt(parts[2], 10);
-                    year = p3.toString().length === 4 ? p3 : (p3 < 50 ? 2000 + p3 : 1900 + p3);
-                    if (p1 > 12) { day = p1; month = p2; } 
-                    else { month = p1; day = p2; }
-                } else { return null; }
-            } else { return null; }
+            } else {
+                return null;
+            }
 
             if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+
             let dateObj = new Date(Date.UTC(year, month - 1, day));
+
+            // Processamento da Hora (Mantido igual)
             if (timeVal != null) {
-                if (typeof timeVal === 'number' && timeVal > 0 && timeVal < 1) {
-                    const totalSeconds = timeVal * 86400;
+                if (typeof timeVal === 'number' && timeVal >= 0 && timeVal < 1) {
+                    const totalSeconds = Math.round(timeVal * 86400);
                     const hours = Math.floor(totalSeconds / 3600);
                     const minutes = Math.floor((totalSeconds % 3600) / 60);
                     dateObj.setUTCHours(hours, minutes, 0, 0);
-                } else if (typeof timeVal === 'string') {
+                } else if (typeof timeVal === 'string' && timeVal.includes(':')) {
                     const [hours, minutes, seconds] = timeVal.split(':');
                     dateObj.setUTCHours(parseInt(hours || 0), parseInt(minutes || 0), parseInt(seconds || 0), 0);
-                } else if (timeVal instanceof Date) {
-                    dateObj.setUTCHours(timeVal.getUTCHours(), timeVal.getUTCMinutes(), timeVal.getUTCSeconds(), 0);
                 }
             }
             return dateObj;
         }
-
         function calculateAndSetTotalHours() {
             const startDateVal = domElements.reportStartDateInput.value;
             const endDateVal = domElements.reportEndDateInput.value;
