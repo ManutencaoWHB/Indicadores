@@ -3187,55 +3187,59 @@ async function getChatbotResponse(question) {
 
         // FUNÇÃO NOVA: Carregar dados direto do Google Sheets
         async function loadDataFromGoogleDrive() {
-            // Seu link já está aqui corretamente
+            // Seu link do Google Sheets
             const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTtB5HFqn9ZvEa4SAPReYcpDI5XyQSbahgWJBxNFVlYedeKvs9PnmdH9dEcPubS1EFHczPOS4cdPQE3/pub?gid=266670542&single=true&output=csv"; 
 
             if (!googleSheetUrl || googleSheetUrl.includes("COLE_SEU_LINK")) return;
 
             try {
-                domElements.fileNameDisplay.style.display = 'block'; // Mostra o status temporariamente
+                domElements.fileNameDisplay.style.display = 'block';
                 domElements.fileNameDisplay.textContent = "Conectando ao Google Drive...";
                 
                 const response = await fetch(googleSheetUrl);
                 
                 if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
 
-                // MUDANÇA IMPORTANTE: Ler como texto, não arrayBuffer, pois é CSV
                 const csvText = await response.text();
                 
-                // Lê o workbook indicando que é string/csv
+                // Lê o arquivo
                 const workbook = XLSX.read(csvText, { type: 'string' });
-                
                 const sheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[sheetName];
                 
-                jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false, dateNF: 'dd/mm/yyyy' });
+                // --- A CORREÇÃO ESTÁ AQUI ---
+                // Adicionamos 'defval: ""'. Isso obriga o sistema a listar a coluna 
+                // mesmo que a célula esteja vazia na primeira linha.
+                jsonData = XLSX.utils.sheet_to_json(worksheet, { 
+                    raw: false, 
+                    dateNF: 'dd/mm/yyyy',
+                    defval: ""  // <--- ISSO VAI FAZER AS COLUNAS K e AM APARECEREM
+                });
 
                 if (jsonData.length === 0) throw new Error("A planilha recebida está vazia.");
 
-                // Configurações e carregamento da tela
+                // Agora pegamos os cabeçalhos de forma mais segura
+                // Pegamos o primeiro item, que agora garantidamente tem todas as chaves graças ao defval
                 const headers = Object.keys(jsonData[0]);
+                
+                // Depuração: Mostra no console do navegador quais colunas ele achou (opcional)
+                console.log("Colunas encontradas:", headers);
+
                 populateSelectors(headers);
                 updateReportDateRange();
                 populateProductionLineFilter();
                 
-                // Sucesso
                 domElements.analysisSection.classList.remove('hidden');
                 domElements.analyzerNoData.classList.add('hidden');
                 domElements.resultsSection.classList.add('hidden');
                 switchPage('analyzer-page');
                 
-                // Oculta o texto de carregamento novamente pois já deu certo
                 domElements.fileNameDisplay.style.display = 'none';
-
-                // Opcional: Executa a análise automaticamente se as colunas já estiverem mapeadas
-                // setTimeout(runAnalysis, 500); 
 
             } catch (err) {
                 console.error("Erro Google Drive:", err);
                 domElements.fileNameDisplay.style.display = 'block';
                 domElements.fileNameDisplay.textContent = "Erro ao carregar dados.";
-                // Mostra o erro na tela para você saber o que houve
                 showMessage("Falha na conexão com a planilha: " + err.message, 'error');
             }
         }
