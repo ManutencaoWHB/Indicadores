@@ -67,7 +67,7 @@
         .file-input-button:hover { background-color: #4338ca; }
         input[type="file"] { display: none; }
         .file-input-button, #file-name {
-            display: none !important;
+            display: none !important; }
         th.sortable { cursor: pointer; user-select: none; }
         th.sortable:hover { background-color: #eef2ff; }
         .dark th.sortable:hover { background-color: #312e81; }
@@ -3156,52 +3156,58 @@ async function getChatbotResponse(question) {
 
         // FUNÇÃO NOVA: Carregar dados direto do Google Sheets
         async function loadDataFromGoogleDrive() {
-            // COLE O SEU LINK DO PASSO 1 AQUI DENTRO DAS ASPAS:
+            // Seu link já está aqui corretamente
             const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTtB5HFqn9ZvEa4SAPReYcpDI5XyQSbahgWJBxNFVlYedeKvs9PnmdH9dEcPubS1EFHczPOS4cdPQE3/pub?gid=266670542&single=true&output=csv"; 
 
-            // Se você não colocou o link ainda, não faz nada
-            if (googleSheetUrl === "https://docs.google.com/spreadsheets/d/e/2PACX-1vTtB5HFqn9ZvEa4SAPReYcpDI5XyQSbahgWJBxNFVlYedeKvs9PnmdH9dEcPubS1EFHczPOS4cdPQE3/pub?gid=266670542&single=true&output=csv" || !googleSheetUrl) return;
+            if (!googleSheetUrl || googleSheetUrl.includes("COLE_SEU_LINK")) return;
 
             try {
-                // Mostra mensagem de carregando
-                domElements.fileNameDisplay.textContent = "Buscando dados no Google Drive...";
+                domElements.fileNameDisplay.style.display = 'block'; // Mostra o status temporariamente
+                domElements.fileNameDisplay.textContent = "Conectando ao Google Drive...";
                 
                 const response = await fetch(googleSheetUrl);
                 
-                if (!response.ok) throw new Error("Erro ao acessar a planilha");
+                if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
 
-                const data = await response.arrayBuffer();
-                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                const sheetName = workbook.SheetNames[0]; // Pega a primeira aba
+                // MUDANÇA IMPORTANTE: Ler como texto, não arrayBuffer, pois é CSV
+                const csvText = await response.text();
+                
+                // Lê o workbook indicando que é string/csv
+                const workbook = XLSX.read(csvText, { type: 'string' });
+                
+                const sheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[sheetName];
                 
                 jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false, dateNF: 'dd/mm/yyyy' });
 
-                if (jsonData.length === 0) throw new Error("A planilha parece estar vazia.");
+                if (jsonData.length === 0) throw new Error("A planilha recebida está vazia.");
 
-                // Configurações automáticas (igual ao upload manual)
+                // Configurações e carregamento da tela
                 const headers = Object.keys(jsonData[0]);
                 populateSelectors(headers);
                 updateReportDateRange();
                 populateProductionLineFilter();
                 
-                // Muda para a tela do analisador
-                domElements.fileNameDisplay.textContent = "Dados carregados via Nuvem (Google)";
+                // Sucesso
                 domElements.analysisSection.classList.remove('hidden');
                 domElements.analyzerNoData.classList.add('hidden');
                 domElements.resultsSection.classList.add('hidden');
                 switchPage('analyzer-page');
                 
-                // Opcional: Já clicar em analisar automaticamente se quiser
-                // runAnalysis(); 
+                // Oculta o texto de carregamento novamente pois já deu certo
+                domElements.fileNameDisplay.style.display = 'none';
+
+                // Opcional: Executa a análise automaticamente se as colunas já estiverem mapeadas
+                // setTimeout(runAnalysis, 500); 
 
             } catch (err) {
-                console.error(err);
-                showMessage("Não foi possível carregar do Google Drive: " + err.message);
-                domElements.fileNameDisplay.textContent = "Erro no carregamento automático.";
+                console.error("Erro Google Drive:", err);
+                domElements.fileNameDisplay.style.display = 'block';
+                domElements.fileNameDisplay.textContent = "Erro ao carregar dados.";
+                // Mostra o erro na tela para você saber o que houve
+                showMessage("Falha na conexão com a planilha: " + err.message, 'error');
             }
         }
-
         document.addEventListener('DOMContentLoaded', () => {
             // ... (Mantenha as definições de domElements aqui, igual já estava)
             domElements = {
