@@ -837,7 +837,7 @@
             }
         }
         
-        function handleDateFilterChange() {
+function handleDateFilterChange() {
             const year = domElements.yearSelect.value;
             const month = domElements.monthSelect.value;
             const week = domElements.weekSelect.value;
@@ -864,12 +864,8 @@
                 }
             }
 
-            if (globalMinDate && domElements.reportStartDateInput.value && new Date(domElements.reportStartDateInput.value) < globalMinDate) {
-                domElements.reportStartDateInput.value = toYYYYMMDD(globalMinDate);
-            }
-            if (globalMaxDate && domElements.reportEndDateInput.value && new Date(domElements.reportEndDateInput.value) > globalMaxDate) {
-                domElements.reportEndDateInput.value = toYYYYMMDD(globalMaxDate);
-            }
+            // --- REMOVI O BLOCO QUE TRAVAVA AS DATAS AQUI ---
+            // Isso permite que o filtro funcione mesmo se o mês não estiver completo na planilha
 
             calculateAndSetTotalHours();
         }
