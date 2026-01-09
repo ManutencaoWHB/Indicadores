@@ -930,43 +930,74 @@
             autoMapColumns(headers);
         }
 
-        function autoMapColumns(headers) {
+function autoMapColumns(headers) {
+            // Lista de termos para procurar (adicionei variações comuns para garantir)
             const columnMappings = {
-                'machine-column': ['bem', 'ativo', 'maquina', 'equipamento', 'codigo'],
+                'machine-column': ['bem', 'ativo', 'maquina', 'equipamento', 'codigo', 'asset'],
                 'asset-name-column': ['nome do bem', 'nome', 'descricao', 'description', 'nome_bem'],
-                'downtime-column': ['hora total', 'duracao', 'tempo parada', 'downtime', 'horas', 'total_horas'],
-                'service-order-column': ['ordem', 'os', 'service order', 'ordem_servico', 'numero_ordem'],
-                'order-title-column': ['titulo', 'title', 'descricao ordem', 'motivo', 'observacao'],
+                'downtime-column': ['Hora Total', 'duracao', 'tempo parada', 'downtime', 'horas', 'total_horas', 'total horas', 'duração'],
+                'service-order-column': ['ordem', 'os', 'service order', 'ordem_servico', 'numero_ordem', 'n ordem'],
+                'order-title-column': ['titulo', 'title', 'descricao ordem', 'motivo', 'observacao', 'problema'],
                 'start-date-column': ['dt. par. real ini', 'data inicio', 'data abertura', 'start date', 'data_inicio', 'data'],
-                'start-time-column': ['hr. par. real ini', 'hora inicio', 'hora abertura', 'start time', 'hora_inicio'],
+                'start-time-column': ['hr. par. real ini', 'hora inicio', 'hora abertura', 'start time', 'hora_inicio', 'hora'],
                 'cost-center-column': ['desc. c.custo', 'desc c.custo', 'desc c custo', 'centro de custo', 'linha', 'linha de producao'],
-                'solution-details-column': ['insumos', 'detalhe servico', 'acao executada', 'detalhes da solucao', 'servico executado']
+                'solution-details-column': ['Insumos', 'detalhe servico', 'acao executada', 'detalhes da solucao', 'servico executado']
             };
-            const normalizeString = (str) => str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s\.]/g, '').trim();
+
+            // Função de limpeza melhorada: remove acentos, pontos, símbolos e espaços duplos
+            const normalizeString = (str) => {
+                if (!str) return '';
+                return str.toString()
+                    .toLowerCase()
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove acentos
+                    .replace(/[^a-z0-9\s]/g, '') // Remove tudo que não for letra ou número (pontos, traços, etc)
+                    .replace(/\s+/g, ' ') // Transforma espaços duplos em simples
+                    .trim();
+            };
+
             Object.keys(columnMappings).forEach(selectId => {
                 const selectElement = document.getElementById(selectId);
                 if (!selectElement) return;
+
                 const patterns = columnMappings[selectId];
                 let matchedHeader = null;
+
+                // Tentativa 1: Busca Exata (após limpeza)
                 for (const header of headers) {
                     const normalizedHeader = normalizeString(header);
-                    if (patterns.some(p => normalizedHeader === normalizeString(p))) { matchedHeader = header; break; }
+                    if (patterns.some(p => normalizedHeader === normalizeString(p))) { 
+                        matchedHeader = header; 
+                        break; 
+                    }
                 }
+
+                // Tentativa 2: Busca Parcial (se o termo estiver contido no cabeçalho)
                 if (!matchedHeader) {
                     for (const header of headers) {
                         const normalizedHeader = normalizeString(header);
-                        if (patterns.some(p => normalizedHeader.includes(normalizeString(p)))) { matchedHeader = header; break; }
+                        if (patterns.some(p => normalizedHeader.includes(normalizeString(p)))) { 
+                            matchedHeader = header; 
+                            break; 
+                        }
                     }
                 }
+
+                // Se encontrou, seleciona e pisca em verde
                 if (matchedHeader && selectElement) {
                     selectElement.value = matchedHeader;
-                    selectElement.style.backgroundColor = '#dcfce7'; selectElement.style.borderColor = '#16a34a';
-                    setTimeout(() => { selectElement.style.backgroundColor = ''; selectElement.style.borderColor = ''; }, 3000);
+                    selectElement.style.backgroundColor = '#dcfce7'; 
+                    selectElement.style.borderColor = '#16a34a';
+                    // Volta a cor normal depois de 3 segundos
+                    setTimeout(() => { 
+                        selectElement.style.backgroundColor = ''; 
+                        selectElement.style.borderColor = ''; 
+                    }, 3000);
                 }
             });
+
             const autoFilledFields = Array.from(document.querySelectorAll('.config-select')).filter(sel => sel.value !== '').length;
             if (autoFilledFields > 0) {
-                showMessage(`${autoFilledFields} de 9 campos de análise principal foram preenchidos. Verifique se estão corretos.`, 'success');
+                console.log(`Auto-mapeamento completado: ${autoFilledFields} campos encontrados.`);
             }
         }
 
