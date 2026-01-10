@@ -800,19 +800,22 @@ function populateMonthSelector() {
         const minYear = globalMinDate.getUTCFullYear();
         const maxYear = globalMaxDate.getUTCFullYear();
 
-        // Se o ano selecionado for o ano inicial dos dados, restringir meses anteriores
+        // Se estamos no ano inicial, começar do mês correto
         if (year === minYear) {
             minMonthIndex = globalMinDate.getUTCMonth();
+        } else if (year < minYear) {
+            minMonthIndex = 12; // Ano inválido (anterior aos dados), esconde tudo
         }
 
-        // Se o ano selecionado for o ano final dos dados, restringir meses posteriores
+        // Se estamos no ano final, terminar no mês correto
         if (year === maxYear) {
             maxMonthIndex = globalMaxDate.getUTCMonth();
+        } else if (year > maxYear) {
+            maxMonthIndex = -1; // Ano inválido (posterior aos dados), esconde tudo
         }
     }
 
     months.forEach((month, index) => {
-        // Só adiciona se estiver dentro do range permitido pelos dados
         if (index >= minMonthIndex && index <= maxMonthIndex) {
             const option = document.createElement('option');
             option.value = index;
@@ -825,7 +828,6 @@ function populateMonthSelector() {
         populateWeekSelector();
     }
 }
-
         function populateWeekSelector() {
             domElements.weekSelect.innerHTML = '<option value="">Semana (Todas)</option>';
             const year = parseInt(domElements.yearSelect.value);
