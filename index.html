@@ -610,7 +610,6 @@
         let draggedItemData = null;
         let currentKpiChartType = null;
         let currentDailyDetailsData = null;
-        let filtersInitialized = false;
         
         const applyTheme = () => {
             const isDarkMode = document.documentElement.classList.contains('dark');
@@ -728,47 +727,6 @@ function combineDateAndTime(dateVal, timeVal) {
     return testDate;
 }
 
-
-function parseBrazilianDateOnly(value) {
-    if (!value) return null;
-
-    if (value instanceof Date) {
-        return new Date(Date.UTC(
-            value.getUTCFullYear(),
-            value.getUTCMonth(),
-            value.getUTCDate(),
-            12, 0, 0
-        ));
-    }
-
-    if (typeof value === 'number') {
-        const excelEpoch = new Date(Date.UTC(1899, 11, 30));
-        const d = new Date(excelEpoch.getTime() + value * 86400000);
-        return new Date(Date.UTC(
-            d.getUTCFullYear(),
-            d.getUTCMonth(),
-            d.getUTCDate(),
-            12, 0, 0
-        ));
-    }
-
-    if (typeof value === 'string') {
-        const parts = value.trim().split(/[\/\-]/);
-        if (parts.length !== 3) return null;
-
-        const day = parseInt(parts[0], 10);
-        const month = parseInt(parts[1], 10);
-        const y = parseInt(parts[2], 10);
-        const year = parts[2].length === 4 ? y : (y < 50 ? 2000 + y : 1900 + y);
-
-        if (!day || !month || !year) return null;
-
-        return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
-    }
-
-    return null;
-}
-
         function calculateAndSetTotalHours() {
             const startDateVal = domElements.reportStartDateInput.value;
             const endDateVal = domElements.reportEndDateInput.value;
@@ -792,13 +750,6 @@ function parseBrazilianDateOnly(value) {
             }
         }
         
-
-        function parseInputDateUTC(value) {
-            if (!value) return null;
-            const [y, m, d] = value.split('-').map(Number);
-            return new Date(Date.UTC(y, m - 1, d));
-        }
-
         const toYYYYMMDD = (date) => {
              const d = new Date(date);
              const year = d.getUTCFullYear();
@@ -832,11 +783,26 @@ function parseBrazilianDateOnly(value) {
                 return; 
             }
             const months = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+            
+            // Determinar os meses válidos com base nas datas globais
+            let startMonth = 0;  // Janeiro
+            let endMonth = 11;   // Dezembro
+            
+            if (globalMinDate && year === globalMinDate.getUTCFullYear()) {
+                startMonth = globalMinDate.getUTCMonth();
+            }
+            if (globalMaxDate && year === globalMaxDate.getUTCFullYear()) {
+                endMonth = globalMaxDate.getUTCMonth();
+            }
+            
             months.forEach((month, index) => {
-                const option = document.createElement('option');
-                option.value = index;
-                option.textContent = month;
-                domElements.monthSelect.appendChild(option);
+                // Só adiciona o mês se estiver dentro do intervalo válido para o ano selecionado
+                if (index >= startMonth && index <= endMonth) {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = month;
+                    domElements.monthSelect.appendChild(option);
+                }
             });
             if (domElements.monthSelect.value) {
                 populateWeekSelector();
@@ -875,7 +841,6 @@ function parseBrazilianDateOnly(value) {
             }
         }
         
-        
         function handleDateFilterChange() {
             const year = domElements.yearSelect.value;
             const month = domElements.monthSelect.value;
@@ -888,27 +853,30 @@ function parseBrazilianDateOnly(value) {
                 const [start, end] = week.split('|');
                 domElements.reportStartDateInput.value = start;
                 domElements.reportEndDateInput.value = end;
-            } 
-            else if (month !== "" && year !== "") {
+            } else if (month !== "" && year !== "") {
                 const startDate = new Date(Date.UTC(parseInt(year), parseInt(month), 1));
                 const endDate = new Date(Date.UTC(parseInt(year), parseInt(month) + 1, 0));
                 domElements.reportStartDateInput.value = toYYYYMMDD(startDate);
                 domElements.reportEndDateInput.value = toYYYYMMDD(endDate);
-            } 
-            else if (year !== "") {
+            } else if (year !== "") {
                 domElements.reportStartDateInput.value = `${year}-01-01`;
                 domElements.reportEndDateInput.value = `${year}-12-31`;
-            } 
-            else if (!filtersInitialized && globalMinDate && globalMaxDate) {
+            } else { 
+                if (globalMinDate && globalMaxDate) {
+                    domElements.reportStartDateInput.value = toYYYYMMDD(globalMinDate);
+                    domElements.reportEndDateInput.value = toYYYYMMDD(globalMaxDate);
+                }
+            }
+
+            if (globalMinDate && domElements.reportStartDateInput.value && new Date(domElements.reportStartDateInput.value) < globalMinDate) {
                 domElements.reportStartDateInput.value = toYYYYMMDD(globalMinDate);
+            }
+            if (globalMaxDate && domElements.reportEndDateInput.value && new Date(domElements.reportEndDateInput.value) > globalMaxDate) {
                 domElements.reportEndDateInput.value = toYYYYMMDD(globalMaxDate);
             }
 
-            filtersInitialized = true;
             calculateAndSetTotalHours();
         }
-
-
 
         function clearFilters() {
             domElements.yearSelect.value = "";
@@ -956,18 +924,10 @@ function parseBrazilianDateOnly(value) {
             }
             let minDate = null; let maxDate = null;
             jsonData.forEach(row => {
-                const dateOnly = combineDateAndTime(row[startDateCol], null);
-
-                if (dateOnly && !isNaN(dateOnly.getTime())) {
-                    const normalized = new Date(Date.UTC(
-                        dateOnly.getUTCFullYear(),
-                        dateOnly.getUTCMonth(),
-                        dateOnly.getUTCDate(),
-                        12, 0, 0
-                    ));
-
-                    if (!minDate || normalized < minDate) minDate = normalized;
-                    if (!maxDate || normalized > maxDate) maxDate = normalized;
+                const currentDate = combineDateAndTime(row[startDateCol], row[startTimeCol]);
+                if (currentDate && !isNaN(currentDate.getTime())) {
+                    if (!minDate || currentDate < minDate) minDate = currentDate;
+                    if (!maxDate || currentDate > maxDate) maxDate = currentDate;
                 }
             });
             if (minDate && maxDate) {
