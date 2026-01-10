@@ -728,6 +728,47 @@ function combineDateAndTime(dateVal, timeVal) {
     return testDate;
 }
 
+
+function parseBrazilianDateOnly(value) {
+    if (!value) return null;
+
+    if (value instanceof Date) {
+        return new Date(Date.UTC(
+            value.getUTCFullYear(),
+            value.getUTCMonth(),
+            value.getUTCDate(),
+            12, 0, 0
+        ));
+    }
+
+    if (typeof value === 'number') {
+        const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+        const d = new Date(excelEpoch.getTime() + value * 86400000);
+        return new Date(Date.UTC(
+            d.getUTCFullYear(),
+            d.getUTCMonth(),
+            d.getUTCDate(),
+            12, 0, 0
+        ));
+    }
+
+    if (typeof value === 'string') {
+        const parts = value.trim().split(/[\/\-]/);
+        if (parts.length !== 3) return null;
+
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10);
+        const y = parseInt(parts[2], 10);
+        const year = parts[2].length === 4 ? y : (y < 50 ? 2000 + y : 1900 + y);
+
+        if (!day || !month || !year) return null;
+
+        return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+    }
+
+    return null;
+}
+
         function calculateAndSetTotalHours() {
             const startDateVal = domElements.reportStartDateInput.value;
             const endDateVal = domElements.reportEndDateInput.value;
@@ -915,7 +956,7 @@ function combineDateAndTime(dateVal, timeVal) {
             }
             let minDate = null; let maxDate = null;
             jsonData.forEach(row => {
-                let currentDate = combineDateAndTime(row[startDateCol], row[startTimeCol]);
+                let currentDate = parseBrazilianDateOnly(row[startDateCol]);
                 if (currentDate) {
                     currentDate = new Date(Date.UTC(
                         currentDate.getUTCFullYear(),
