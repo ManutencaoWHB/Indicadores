@@ -683,13 +683,28 @@ function combineDateAndTime(dateVal, timeVal) {
         day = dateObj.getUTCDate();
     } 
     else if (typeof dateVal === 'string') {
-        const parts = dateVal.split(' ')[0].split('/');
-        if (parts.length !== 3) return null;
-
-        day = parseInt(parts[0], 10);
-        month = parseInt(parts[1], 10);
-        const p3 = parseInt(parts[2], 10);
-        year = parts[2].length === 4 ? p3 : (p3 < 50 ? 2000 + p3 : 1900 + p3);
+        // Tenta primeiro o formato DD/MM/AAAA ou DD/MM/AA
+        let parts = dateVal.split(' ')[0].split('/');
+        
+        // Se não encontrou barras, tenta com hífens (AAAA-MM-DD)
+        if (parts.length !== 3) {
+            parts = dateVal.split(' ')[0].split('-');
+            if (parts.length === 3 && parts[0].length === 4) {
+                // Formato AAAA-MM-DD (ISO)
+                year = parseInt(parts[0], 10);
+                month = parseInt(parts[1], 10);
+                day = parseInt(parts[2], 10);
+            } else {
+                return null;
+            }
+        } else {
+            // Formato DD/MM/AAAA ou DD/MM/AA
+            day = parseInt(parts[0], 10);
+            month = parseInt(parts[1], 10);
+            const p3 = parseInt(parts[2], 10);
+            // CORREÇÃO: Aumentado o limite de 50 para 30 para garantir que anos como 26 sejam 2026
+            year = parts[2].length === 4 ? p3 : (p3 < 30 ? 2000 + p3 : 1900 + p3);
+        }
     } 
     else return null;
 
@@ -783,26 +798,11 @@ function combineDateAndTime(dateVal, timeVal) {
                 return; 
             }
             const months = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-            
-            // Determinar os meses válidos com base nas datas globais
-            let startMonth = 0;  // Janeiro
-            let endMonth = 11;   // Dezembro
-            
-            if (globalMinDate && year === globalMinDate.getUTCFullYear()) {
-                startMonth = globalMinDate.getUTCMonth();
-            }
-            if (globalMaxDate && year === globalMaxDate.getUTCFullYear()) {
-                endMonth = globalMaxDate.getUTCMonth();
-            }
-            
             months.forEach((month, index) => {
-                // Só adiciona o mês se estiver dentro do intervalo válido para o ano selecionado
-                if (index >= startMonth && index <= endMonth) {
-                    const option = document.createElement('option');
-                    option.value = index;
-                    option.textContent = month;
-                    domElements.monthSelect.appendChild(option);
-                }
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = month;
+                domElements.monthSelect.appendChild(option);
             });
             if (domElements.monthSelect.value) {
                 populateWeekSelector();
@@ -3033,7 +3033,8 @@ async function getChatbotResponse(question) {
                         const workbook = XLSX.read(data, { type: 'array', cellDates: true });
                         const sheetName = workbook.SheetNames[0];
                         const worksheet = workbook.Sheets[sheetName];
-                        jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false, dateNF: 'dd/mm/yyyy' });
+                        // Usar raw: true para manter objetos Date nativos, facilitando o processamento
+                        jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: true, dateNF: 'dd/mm/yyyy' });
                         if (jsonData.length === 0) throw new Error("A planilha parece estar vazia.");
                         const headers = Object.keys(jsonData[0]);
                         populateSelectors(headers);
@@ -3222,7 +3223,8 @@ async function getChatbotResponse(question) {
                 const sheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[sheetName];
                 
-                jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false, dateNF: 'dd/mm/yyyy' });
+                // Usar raw: true para manter objetos Date nativos, facilitando o processamento
+                jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: true, dateNF: 'dd/mm/yyyy' });
 
                 if (!jsonData || jsonData.length === 0) throw new Error("A planilha foi baixada mas parece estar vazia.");
 
