@@ -610,6 +610,7 @@
         let draggedItemData = null;
         let currentKpiChartType = null;
         let currentDailyDetailsData = null;
+        let filtersInitialized = false;
         
         const applyTheme = () => {
             const isDarkMode = document.documentElement.classList.contains('dark');
@@ -833,6 +834,7 @@ function combineDateAndTime(dateVal, timeVal) {
             }
         }
         
+        
         function handleDateFilterChange() {
             const year = domElements.yearSelect.value;
             const month = domElements.monthSelect.value;
@@ -845,33 +847,27 @@ function combineDateAndTime(dateVal, timeVal) {
                 const [start, end] = week.split('|');
                 domElements.reportStartDateInput.value = start;
                 domElements.reportEndDateInput.value = end;
-            } else if (month !== "" && year !== "") {
+            } 
+            else if (month !== "" && year !== "") {
                 const startDate = new Date(Date.UTC(parseInt(year), parseInt(month), 1));
                 const endDate = new Date(Date.UTC(parseInt(year), parseInt(month) + 1, 0));
                 domElements.reportStartDateInput.value = toYYYYMMDD(startDate);
                 domElements.reportEndDateInput.value = toYYYYMMDD(endDate);
-            } else if (year !== "") {
+            } 
+            else if (year !== "") {
                 domElements.reportStartDateInput.value = `${year}-01-01`;
                 domElements.reportEndDateInput.value = `${year}-12-31`;
-            } else { 
-                if (globalMinDate && globalMaxDate) {
-                    domElements.reportStartDateInput.value = toYYYYMMDD(globalMinDate);
-                    domElements.reportEndDateInput.value = toYYYYMMDD(globalMaxDate);
-                }
-            }
-
-            const startInputUTC = parseInputDateUTC(domElements.reportStartDateInput.value);
-            const endInputUTC = parseInputDateUTC(domElements.reportEndDateInput.value);
-
-            if (globalMinDate && startInputUTC && startInputUTC < globalMinDate) {
+            } 
+            else if (!filtersInitialized && globalMinDate && globalMaxDate) {
                 domElements.reportStartDateInput.value = toYYYYMMDD(globalMinDate);
-            }
-            if (globalMaxDate && endInputUTC && endInputUTC > globalMaxDate) {
                 domElements.reportEndDateInput.value = toYYYYMMDD(globalMaxDate);
             }
 
+            filtersInitialized = true;
             calculateAndSetTotalHours();
         }
+
+
 
         function clearFilters() {
             domElements.yearSelect.value = "";
