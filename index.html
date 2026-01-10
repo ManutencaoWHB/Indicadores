@@ -666,59 +666,67 @@
         };
 
 // FUNÇÃO CORRIGIDA: Força o padrão brasileiro (DD/MM/AAAA)
-        function combineDateAndTime(dateVal, timeVal) {
-            if (dateVal == null) return null;
-            let year, month, day;
+// FUNÇÃO FINAL – padrão brasileiro DD/MM/AAAA
+function combineDateAndTime(dateVal, timeVal) {
+    if (dateVal == null) return null;
+    let year, month, day;
 
-            if (dateVal instanceof Date) {
-                year = dateVal.getUTCFullYear();
-                month = dateVal.getUTCMonth() + 1;
-                day = dateVal.getUTCDate();
-            } else if (typeof dateVal === 'number') {
-                // Tratamento para números de série do Excel
-                const excelEpoch = new Date(1899, 11, 30);
-                const dateObj = new Date(excelEpoch.getTime() + dateVal * 86400000);
-                year = dateObj.getUTCFullYear();
-                month = dateObj.getUTCMonth() + 1;
-                day = dateObj.getUTCDate();
-            } else if (typeof dateVal === 'string') {
-                // AQUI FOI FEITA A CORREÇÃO
-                const parts = String(dateVal).split(' ')[0].split(/[\/-]/);
-                if (parts.length === 3) {
-                    const p1 = parseInt(parts[0], 10);
-                    const p2 = parseInt(parts[1], 10);
-                    const p3 = parseInt(parts[2], 10);
-                    
-                    // CORREÇÃO: Assume SEMPRE formato Dia/Mês/Ano
-                    day = p1;   // Primeiro número é Dia
-                    month = p2; // Segundo número é Mês
-                    
-                    // Ajuste de ano (ex: 26 vira 2026)
-                    year = p3.toString().length === 4 ? p3 : (p3 < 50 ? 2000 + p3 : 1900 + p3);
-                } else { return null; }
-            } else { return null; }
+    if (dateVal instanceof Date) {
+        year = dateVal.getUTCFullYear();
+        month = dateVal.getUTCMonth() + 1;
+        day = dateVal.getUTCDate();
+    } 
+    else if (typeof dateVal === 'number') {
+        const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+        const dateObj = new Date(excelEpoch.getTime() + dateVal * 86400000);
+        year = dateObj.getUTCFullYear();
+        month = dateObj.getUTCMonth() + 1;
+        day = dateObj.getUTCDate();
+    } 
+    else if (typeof dateVal === 'string') {
+        const parts = dateVal.split(' ')[0].split('/');
+        if (parts.length !== 3) return null;
 
-            if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
-            
-            // Cria a data
-            let dateObj = new Date(Date.UTC(year, month - 1, day));
-            
-            // Adiciona a hora se houver
-            if (timeVal != null) {
-                if (typeof timeVal === 'number' && timeVal > 0 && timeVal < 1) {
-                    const totalSeconds = timeVal * 86400;
-                    const hours = Math.floor(totalSeconds / 3600);
-                    const minutes = Math.floor((totalSeconds % 3600) / 60);
-                    dateObj.setUTCHours(hours, minutes, 0, 0);
-                } else if (typeof timeVal === 'string') {
-                    const [hours, minutes, seconds] = timeVal.split(':');
-                    dateObj.setUTCHours(parseInt(hours || 0), parseInt(minutes || 0), parseInt(seconds || 0), 0);
-                } else if (timeVal instanceof Date) {
-                    dateObj.setUTCHours(timeVal.getUTCHours(), timeVal.getUTCMinutes(), timeVal.getUTCSeconds(), 0);
-                }
-            }
-            return dateObj;
+        day = parseInt(parts[0], 10);
+        month = parseInt(parts[1], 10);
+        const p3 = parseInt(parts[2], 10);
+        year = parts[2].length === 4 ? p3 : (p3 < 50 ? 2000 + p3 : 1900 + p3);
+    } 
+    else return null;
+
+    const testDate = new Date(Date.UTC(year, month - 1, day));
+    if (
+        testDate.getUTCFullYear() !== year ||
+        testDate.getUTCMonth() !== month - 1 ||
+        testDate.getUTCDate() !== day
+    ) return null;
+
+    if (timeVal != null) {
+        if (typeof timeVal === 'number' && timeVal > 0 && timeVal < 1) {
+            const totalSeconds = Math.round(timeVal * 86400);
+            testDate.setUTCHours(
+                Math.floor(totalSeconds / 3600),
+                Math.floor((totalSeconds % 3600) / 60),
+                totalSeconds % 60,
+                0
+            );
+        } 
+        else if (typeof timeVal === 'string') {
+            const [h = 0, m = 0, s = 0] = timeVal.split(':').map(Number);
+            testDate.setUTCHours(h, m, s, 0);
+        } 
+        else if (timeVal instanceof Date) {
+            testDate.setUTCHours(
+                timeVal.getUTCHours(),
+                timeVal.getUTCMinutes(),
+                timeVal.getUTCSeconds(),
+                0
+            );
         }
+    }
+
+    return testDate;
+}
 
         function calculateAndSetTotalHours() {
             const startDateVal = domElements.reportStartDateInput.value;
