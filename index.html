@@ -665,6 +665,7 @@
             return parseFloat(String(value).replace(/\./g, '').replace(',', '.'));
         };
 
+// FUNÇÃO CORRIGIDA: Força o padrão brasileiro (DD/MM/AAAA)
         function combineDateAndTime(dateVal, timeVal) {
             if (dateVal == null) return null;
             let year, month, day;
@@ -674,25 +675,35 @@
                 month = dateVal.getUTCMonth() + 1;
                 day = dateVal.getUTCDate();
             } else if (typeof dateVal === 'number') {
+                // Tratamento para números de série do Excel
                 const excelEpoch = new Date(1899, 11, 30);
                 const dateObj = new Date(excelEpoch.getTime() + dateVal * 86400000);
                 year = dateObj.getUTCFullYear();
                 month = dateObj.getUTCMonth() + 1;
                 day = dateObj.getUTCDate();
             } else if (typeof dateVal === 'string') {
+                // AQUI FOI FEITA A CORREÇÃO
                 const parts = String(dateVal).split(' ')[0].split(/[\/-]/);
                 if (parts.length === 3) {
                     const p1 = parseInt(parts[0], 10);
                     const p2 = parseInt(parts[1], 10);
                     const p3 = parseInt(parts[2], 10);
+                    
+                    // CORREÇÃO: Assume SEMPRE formato Dia/Mês/Ano
+                    day = p1;   // Primeiro número é Dia
+                    month = p2; // Segundo número é Mês
+                    
+                    // Ajuste de ano (ex: 26 vira 2026)
                     year = p3.toString().length === 4 ? p3 : (p3 < 50 ? 2000 + p3 : 1900 + p3);
-                    if (p1 > 12) { day = p1; month = p2; } 
-                    else { month = p1; day = p2; }
                 } else { return null; }
             } else { return null; }
 
             if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+            
+            // Cria a data
             let dateObj = new Date(Date.UTC(year, month - 1, day));
+            
+            // Adiciona a hora se houver
             if (timeVal != null) {
                 if (typeof timeVal === 'number' && timeVal > 0 && timeVal < 1) {
                     const totalSeconds = timeVal * 86400;
