@@ -3154,33 +3154,51 @@ async function getChatbotResponse(question) {
 
         // FUNÇÃO NOVA: Carregar dados direto do Google Sheets
         async function loadDataFromGoogleDrive() {
-            // Link direto da sua planilha
-            const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTQdVJtMUlq-Frybk2da2t7X5jnpcWTM5ixYtMZAVa25zsJJRrklBzRVynV4JhG6pFy3xDwYcJ0wwew/pubhtml?gid=179231506&single=true"; 
+            // SEU ID REAL (Extraído do link de edição)
+            const sheetID = "10L3oH3z2kV2z5ilfZmprknokAR4NwszvGeGG7bfDxls"; 
+            
+            // O ID DA ABA (O número que vem depois de 'gid=' no seu link original)
+            const sheetGID = "179231506"; 
+
+            // Monta o link especial da API de Visualização do Google (GVIZ)
+            // Esse link força o Google a entregar um CSV limpo, sem HTML em volta
+            const googleSheetUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv&gid=${sheetGID}`;
 
             try {
-                // Mostra mensagem de que está tentando buscar
-                domElements.fileNameDisplay.textContent = "Buscando dados no Google Drive...";
+                domElements.fileNameDisplay.textContent = "Conectando ao Google Drive...";
                 
                 const response = await fetch(googleSheetUrl);
                 
-                if (!response.ok) throw new Error("Erro ao acessar a planilha (Status: " + response.status + ")");
+                // Se o status não for 200 OK, deu erro na conexão
+                if (!response.ok) {
+                    throw new Error(`Erro de conexão (${response.status}). Verifique se a planilha está como 'Qualquer pessoa com o link'.`);
+                }
 
                 const data = await response.arrayBuffer();
-                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                const sheetName = workbook.SheetNames[0]; 
+                
+                // Tenta ler o arquivo
+                // Se a planilha não estiver pública, o Google manda uma página de Login (HTML)
+                // e é aqui que dava o erro "Invalid HTML".
+                let workbook;
+                try {
+                    workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                } catch (readError) {
+                    throw new Error("O Google bloqueou o acesso. Certeza que você colocou 'Qualquer pessoa com o link' no botão Compartilhar?");
+                }
+
+                const sheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[sheetName];
                 
                 jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false, dateNF: 'dd/mm/yyyy' });
 
-                if (jsonData.length === 0) throw new Error("A planilha foi baixada mas está vazia.");
+                if (!jsonData || jsonData.length === 0) throw new Error("A planilha foi baixada mas parece estar vazia.");
 
-                // Configurações automáticas
+                // Sucesso: Configura a tela
                 const headers = Object.keys(jsonData[0]);
                 populateSelectors(headers);
                 updateReportDateRange();
                 populateProductionLineFilter();
                 
-                // Sucesso: Muda para a tela do analisador
                 domElements.fileNameDisplay.textContent = "Dados carregados via Nuvem (Google)";
                 domElements.fileNameDisplay.classList.add("text-green-600", "font-bold");
                 domElements.analysisSection.classList.remove('hidden');
@@ -3188,13 +3206,13 @@ async function getChatbotResponse(question) {
                 domElements.resultsSection.classList.add('hidden');
                 switchPage('analyzer-page');
 
-                // Opcional: Executa a análise automaticamente
+                // Se quiser rodar a análise direto, descomente a linha abaixo:
                 // runAnalysis(); 
 
             } catch (err) {
-                console.error(err);
-                showMessage("Não foi possível carregar do Google Drive: " + err.message);
-                domElements.fileNameDisplay.textContent = "Erro no carregamento automático.";
+                console.error("Erro Google Drive:", err);
+                showMessage("Falha no carregamento automático: " + err.message);
+                domElements.fileNameDisplay.textContent = "Erro ao carregar da nuvem.";
             }
         }
 
