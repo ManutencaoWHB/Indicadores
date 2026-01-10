@@ -665,83 +665,74 @@
             return parseFloat(String(value).replace(/\./g, '').replace(',', '.'));
         };
 
-// FUNÇÃO CORRIGIDA: Força o padrão brasileiro (DD/MM/AAAA)
 function combineDateAndTime(dateVal, timeVal) {
     if (dateVal == null) return null;
     let year, month, day;
 
-    if (dateVal instanceof Date) {
-        year = dateVal.getUTCFullYear();
-        month = dateVal.getUTCMonth() + 1;
-        day = dateVal.getUTCDate();
-    } 
-    else if (typeof dateVal === 'number') {
+    // Caso 1: O Excel entregou um número serial (ex: 45300)
+    if (typeof dateVal === 'number') {
         const excelEpoch = new Date(Date.UTC(1899, 11, 30));
         const dateObj = new Date(excelEpoch.getTime() + dateVal * 86400000);
         year = dateObj.getUTCFullYear();
-        month = dateObj.getUTCMonth() + 1;
+        month = dateObj.getUTCMonth(); // 0-11
         day = dateObj.getUTCDate();
     } 
+    // Caso 2: Objeto Date do JS
+    else if (dateVal instanceof Date) {
+        year = dateVal.getUTCFullYear();
+        month = dateVal.getUTCMonth();
+        day = dateVal.getUTCDate();
+    } 
+    // Caso 3: String (Onde ocorre o erro de inversão)
     else if (typeof dateVal === 'string') {
-        // Tenta primeiro o formato DD/MM/AAAA ou DD/MM/AA
-        let parts = dateVal.split(' ')[0].split('/');
-        
-        // Se não encontrou barras, tenta com hífens (AAAA-MM-DD)
-        if (parts.length !== 3) {
-            parts = dateVal.split(' ')[0].split('-');
-            if (parts.length === 3 && parts[0].length === 4) {
-                // Formato AAAA-MM-DD (ISO)
+        let parts = [];
+        // Limpa a string e tenta dividir por / ou -
+        const cleanDate = dateVal.trim().split(' ')[0]; 
+        if (cleanDate.includes('/')) parts = cleanDate.split('/');
+        else if (cleanDate.includes('-')) parts = cleanDate.split('-');
+
+        if (parts.length === 3) {
+            // Se o primeiro número tem 4 dígitos, é AAAA-MM-DD (ISO)
+            if (parts[0].length === 4) {
                 year = parseInt(parts[0], 10);
-                month = parseInt(parts[1], 10);
+                month = parseInt(parts[1], 10) - 1;
                 day = parseInt(parts[2], 10);
             } else {
-                return null;
+                // FORÇA O PADRÃO BRASILEIRO: DD/MM/AAAA
+                // O primeiro número (parts[0]) É O DIA.
+                day = parseInt(parts[0], 10);
+                month = parseInt(parts[1], 10) - 1; // JS conta meses de 0 a 11
+                let p2 = parseInt(parts[2], 10);
+                // Ajuste para anos com 2 dígitos (ex: 26 vira 2026)
+                year = parts[2].length === 4 ? p2 : (p2 < 50 ? 2000 + p2 : 1900 + p2);
             }
         } else {
-            // Formato DD/MM/AAAA ou DD/MM/AA
-            day = parseInt(parts[0], 10);
-            month = parseInt(parts[1], 10);
-            const p3 = parseInt(parts[2], 10);
-            // CORREÇÃO: Aumentado o limite de 50 para 30 para garantir que anos como 26 sejam 2026
-            year = parts[2].length === 4 ? p3 : (p3 < 30 ? 2000 + p3 : 1900 + p3);
+            return null; // Formato desconhecido
         }
     } 
     else return null;
 
-    const testDate = new Date(Date.UTC(year, month - 1, day));
-    if (
-        testDate.getUTCFullYear() !== year ||
-        testDate.getUTCMonth() !== month - 1 ||
-        testDate.getUTCDate() !== day
-    ) return null;
+    // Validação básica se a data existe (ex: 31 de Fevereiro)
+    const testDate = new Date(Date.UTC(year, month, day));
+    if (isNaN(testDate.getTime()) || testDate.getUTCMonth() !== month) {
+        return null;
+    }
 
+    // Processamento da Hora (mantido igual)
     if (timeVal != null) {
-        if (typeof timeVal === 'number' && timeVal > 0 && timeVal < 1) {
+        if (typeof timeVal === 'number') {
             const totalSeconds = Math.round(timeVal * 86400);
-            testDate.setUTCHours(
-                Math.floor(totalSeconds / 3600),
-                Math.floor((totalSeconds % 3600) / 60),
-                totalSeconds % 60,
-                0
-            );
-        } 
-        else if (typeof timeVal === 'string') {
+            testDate.setUTCHours(Math.floor(totalSeconds / 3600), Math.floor((totalSeconds % 3600) / 60), totalSeconds % 60, 0);
+        } else if (typeof timeVal === 'string') {
             const [h = 0, m = 0, s = 0] = timeVal.split(':').map(Number);
             testDate.setUTCHours(h, m, s, 0);
-        } 
-        else if (timeVal instanceof Date) {
-            testDate.setUTCHours(
-                timeVal.getUTCHours(),
-                timeVal.getUTCMinutes(),
-                timeVal.getUTCSeconds(),
-                0
-            );
+        } else if (timeVal instanceof Date) {
+            testDate.setUTCHours(timeVal.getUTCHours(), timeVal.getUTCMinutes(), timeVal.getUTCSeconds(), 0);
         }
     }
 
     return testDate;
 }
-
         function calculateAndSetTotalHours() {
             const startDateVal = domElements.reportStartDateInput.value;
             const endDateVal = domElements.reportEndDateInput.value;
@@ -964,50 +955,67 @@ function handleDateFilterChange() {
             });
         }
         
-        function updateReportDateRange() {
-            const startDateCol = domElements.startDateColumnSelect.value;
-            const startTimeCol = domElements.startTimeColumnSelect.value;
-            const resetAll = () => {
-                globalMinDate = null;
-                globalMaxDate = null;
-                ['reportStartDateInput', 'reportEndDateInput'].forEach(id => {
-                    domElements[id].min = ''; domElements[id].max = ''; domElements[id].value = '';
-                });
-                domElements.yearSelect.innerHTML = '<option value="">Ano (Todos)</option>';
-                domElements.monthSelect.innerHTML = '<option value="">Mês (Todos)</option>';
-                domElements.weekSelect.innerHTML = '<option value="">Semana (Todas)</option>';
-                populateProductionLineFilter();
-            };
-            if (!startDateCol || !jsonData) {
-                resetAll(); return;
-            }
-            let minDate = null; let maxDate = null;
-            jsonData.forEach(row => {
-                const currentDate = combineDateAndTime(row[startDateCol], row[startTimeCol]);
-                if (currentDate && !isNaN(currentDate.getTime())) {
-                    if (!minDate || currentDate < minDate) minDate = currentDate;
-                    if (!maxDate || currentDate > maxDate) maxDate = currentDate;
-                }
-            });
-            if (minDate && maxDate) {
-                globalMinDate = minDate;
-                globalMaxDate = maxDate;
-                const minStr = toYYYYMMDD(minDate);
-                const maxStr = toYYYYMMDD(maxDate);
-                domElements.reportStartDateInput.min = minStr;
-                domElements.reportStartDateInput.max = maxStr;
-                domElements.reportEndDateInput.min = minStr;
-                domElements.reportEndDateInput.max = maxStr;
-                populateYearSelector();
-                domElements.reportStartDateInput.value = minStr;
-                domElements.reportEndDateInput.value = maxStr;
-                calculateAndSetTotalHours();
-            } else {
-                resetAll();
-                showMessage('Não foi possível encontrar datas válidas na coluna selecionada.', 'warning');
+function updateReportDateRange() {
+    const startDateCol = domElements.startDateColumnSelect.value;
+    const startTimeCol = domElements.startTimeColumnSelect.value;
+    
+    const resetAll = () => {
+        globalMinDate = null;
+        globalMaxDate = null;
+        ['reportStartDateInput', 'reportEndDateInput'].forEach(id => {
+            domElements[id].min = ''; domElements[id].max = ''; domElements[id].value = '';
+        });
+        domElements.yearSelect.innerHTML = '<option value="">Ano (Todos)</option>';
+        domElements.monthSelect.innerHTML = '<option value="">Mês (Todos)</option>';
+        domElements.weekSelect.innerHTML = '<option value="">Semana (Todas)</option>';
+        populateProductionLineFilter();
+    };
+
+    if (!startDateCol || !jsonData) {
+        resetAll(); return;
+    }
+
+    let minDate = null; 
+    let maxDate = null;
+
+    jsonData.forEach(row => {
+        // Usa a nova função corrigida
+        const currentDate = combineDateAndTime(row[startDateCol], row[startTimeCol]);
+        
+        if (currentDate && !isNaN(currentDate.getTime())) {
+            // Ignora datas absurdas (ex: anos antes de 2000 ou depois de 2100 para evitar lixo de dados)
+            const y = currentDate.getUTCFullYear();
+            if (y > 2000 && y < 2100) {
+                if (!minDate || currentDate < minDate) minDate = currentDate;
+                if (!maxDate || currentDate > maxDate) maxDate = currentDate;
             }
         }
+    });
 
+    if (minDate && maxDate) {
+        globalMinDate = minDate;
+        globalMaxDate = maxDate;
+        
+        const minStr = toYYYYMMDD(minDate);
+        const maxStr = toYYYYMMDD(maxDate);
+        
+        domElements.reportStartDateInput.min = minStr;
+        domElements.reportStartDateInput.max = maxStr;
+        domElements.reportEndDateInput.min = minStr;
+        domElements.reportEndDateInput.max = maxStr;
+        
+        populateYearSelector();
+        
+        // Define os valores iniciais dos inputs
+        domElements.reportStartDateInput.value = minStr;
+        domElements.reportEndDateInput.value = maxStr;
+        
+        calculateAndSetTotalHours();
+    } else {
+        resetAll();
+        showMessage('Não foi possível encontrar datas válidas. Verifique o formato DD/MM/AAAA.', 'warning');
+    }
+}
         function populateSelectors(headers) {
             const selectors = document.querySelectorAll('.config-select');
             selectors.forEach(sel => sel.innerHTML = '<option value="">-- Selecione a Coluna --</option>');
