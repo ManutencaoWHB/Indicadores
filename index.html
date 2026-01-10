@@ -3154,59 +3154,47 @@ async function getChatbotResponse(question) {
 
         // FUNÇÃO NOVA: Carregar dados direto do Google Sheets
         async function loadDataFromGoogleDrive() {
-            // --- CONFIGURAÇÃO ---
-            // 1. Coloque o ID da planilha (aquele código longo da URL de edição)
-            const sheetID = "10L3oH3z2kV2z5ilfZmprknokAR4NwszvGeGG7bfDxls"; 
-            
-            // 2. Coloque o GID da aba (o número que aparece no final do seu link original 'gid=...')
-            const sheetGID = "179231506"; 
-            // --------------------
-
-            // Monta o link especial que evita bloqueios
-            const googleSheetUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv&gid=${sheetGID}`;
-
-            // Verificação de segurança para não rodar com o ID de exemplo
-            if (sheetID === "10L3oH3z2kV2z5ilfZmprknokAR4NwszvGeGG7bfDxls" || !sheetID) return;
+            // Link direto da sua planilha
+            const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTQdVJtMUlq-Frybk2da2t7X5jnpcWTM5ixYtMZAVa25zsJJRrklBzRVynV4JhG6pFy3xDwYcJ0wwew/pubhtml?gid=179231506&single=true"; 
 
             try {
-                domElements.fileNameDisplay.textContent = "Conectando ao Google Drive...";
+                // Mostra mensagem de que está tentando buscar
+                domElements.fileNameDisplay.textContent = "Buscando dados no Google Drive...";
                 
                 const response = await fetch(googleSheetUrl);
                 
-                if (!response.ok) {
-                    throw new Error(`Erro de conexão (${response.status}). Verifique se a planilha está compartilhada como 'Qualquer pessoa com o link'.`);
-                }
+                if (!response.ok) throw new Error("Erro ao acessar a planilha (Status: " + response.status + ")");
 
                 const data = await response.arrayBuffer();
                 const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                const sheetName = workbook.SheetNames[0];
+                const sheetName = workbook.SheetNames[0]; 
                 const worksheet = workbook.Sheets[sheetName];
                 
                 jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false, dateNF: 'dd/mm/yyyy' });
 
-                if (!jsonData || jsonData.length === 0) throw new Error("A planilha foi baixada mas parece estar vazia.");
+                if (jsonData.length === 0) throw new Error("A planilha foi baixada mas está vazia.");
 
-                // Sucesso: Configura a tela
+                // Configurações automáticas
                 const headers = Object.keys(jsonData[0]);
                 populateSelectors(headers);
                 updateReportDateRange();
                 populateProductionLineFilter();
                 
+                // Sucesso: Muda para a tela do analisador
                 domElements.fileNameDisplay.textContent = "Dados carregados via Nuvem (Google)";
-                domElements.fileNameDisplay.classList.add("text-green-600", "font-bold"); // Destaque visual
+                domElements.fileNameDisplay.classList.add("text-green-600", "font-bold");
                 domElements.analysisSection.classList.remove('hidden');
                 domElements.analyzerNoData.classList.add('hidden');
                 domElements.resultsSection.classList.add('hidden');
                 switchPage('analyzer-page');
 
-                // Executa a análise inicial se tudo estiver mapeado
+                // Opcional: Executa a análise automaticamente
                 // runAnalysis(); 
 
             } catch (err) {
-                console.error("Erro Google Drive:", err);
-                // Mostra o erro na tela para você saber o que houve
-                showMessage("Falha no carregamento automático: " + err.message);
-                domElements.fileNameDisplay.textContent = "Erro ao carregar da nuvem.";
+                console.error(err);
+                showMessage("Não foi possível carregar do Google Drive: " + err.message);
+                domElements.fileNameDisplay.textContent = "Erro no carregamento automático.";
             }
         }
 
