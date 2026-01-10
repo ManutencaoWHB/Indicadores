@@ -915,7 +915,15 @@ function combineDateAndTime(dateVal, timeVal) {
             }
             let minDate = null; let maxDate = null;
             jsonData.forEach(row => {
-                const currentDate = combineDateAndTime(row[startDateCol], row[startTimeCol]);
+                let currentDate = combineDateAndTime(row[startDateCol], row[startTimeCol]);
+                if (currentDate) {
+                    currentDate = new Date(Date.UTC(
+                        currentDate.getUTCFullYear(),
+                        currentDate.getUTCMonth(),
+                        currentDate.getUTCDate(),
+                        12, 0, 0
+                    ));
+                }
                 if (currentDate && !isNaN(currentDate.getTime())) {
                     if (!minDate || currentDate < minDate) minDate = currentDate;
                     if (!maxDate || currentDate > maxDate) maxDate = currentDate;
