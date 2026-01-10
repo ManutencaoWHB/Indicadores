@@ -666,7 +666,6 @@
         };
 
 // FUNÇÃO CORRIGIDA: Força o padrão brasileiro (DD/MM/AAAA)
-// FUNÇÃO FINAL – padrão brasileiro DD/MM/AAAA
 function combineDateAndTime(dateVal, timeVal) {
     if (dateVal == null) return null;
     let year, month, day;
@@ -751,6 +750,13 @@ function combineDateAndTime(dateVal, timeVal) {
             }
         }
         
+
+        function parseInputDateUTC(value) {
+            if (!value) return null;
+            const [y, m, d] = value.split('-').map(Number);
+            return new Date(Date.UTC(y, m - 1, d));
+        }
+
         const toYYYYMMDD = (date) => {
              const d = new Date(date);
              const year = d.getUTCFullYear();
@@ -854,10 +860,13 @@ function combineDateAndTime(dateVal, timeVal) {
                 }
             }
 
-            if (globalMinDate && domElements.reportStartDateInput.value && new Date(domElements.reportStartDateInput.value) < globalMinDate) {
+            const startInputUTC = parseInputDateUTC(domElements.reportStartDateInput.value);
+            const endInputUTC = parseInputDateUTC(domElements.reportEndDateInput.value);
+
+            if (globalMinDate && startInputUTC && startInputUTC < globalMinDate) {
                 domElements.reportStartDateInput.value = toYYYYMMDD(globalMinDate);
             }
-            if (globalMaxDate && domElements.reportEndDateInput.value && new Date(domElements.reportEndDateInput.value) > globalMaxDate) {
+            if (globalMaxDate && endInputUTC && endInputUTC > globalMaxDate) {
                 domElements.reportEndDateInput.value = toYYYYMMDD(globalMaxDate);
             }
 
