@@ -686,35 +686,22 @@ function combineDateAndTime(dateVal, timeVal) {
         else if (cleanDate.includes('-')) parts = cleanDate.split('-');
 
         if (parts.length === 3) {
+            const p0 = parseInt(parts[0], 10);
+            const p1 = parseInt(parts[1], 10);
+            const p2 = parseInt(parts[2], 10);
+
             // Verifica formato ISO (AAAA-MM-DD)
             if (parts[0].length === 4) {
-                year = parseInt(parts[0], 10);
-                month = parseInt(parts[1], 10) - 1;
-                day = parseInt(parts[2], 10);
+                year = p0;
+                month = p1 - 1;
+                day = p2;
             } else {
-                // PADRÃO BRASILEIRO (DD/MM/AAAA)
-                const p0 = parseInt(parts[0], 10); // Primeiro número
-                const p1 = parseInt(parts[1], 10); // Segundo número
-                const p2 = parseInt(parts[2], 10); // Terceiro número (ano)
-
-                // CORREÇÃO DE ANO (ex: 26 -> 2026)
+                // **FORMATO BRASILEIRO FORÇADO: DD/MM/AAAA**
+                day = p0;  // Primeiro número = DIA
+                month = p1 - 1;  // Segundo número = MÊS (ajustado para índice 0)
+                
+                // Correção de ano (26 -> 2026)
                 year = parts[2].length === 4 ? p2 : (p2 < 50 ? 2000 + p2 : 1900 + p2);
-
-                // LÓGICA DE DETECÇÃO DE INVERSÃO
-                // Se o Google mandou MM/DD, o "Dia" (p0) pode ser 01 (Jan) e o "Mês" (p1) ser 08 (Ago).
-                // Mas nos seus dados reais (até 08/01), ambos são < 12, então é ambíguo.
-                // VAMOS FORÇAR A LEITURA: O PRIMEIRO NÚMERO É O DIA.
-                day = p0;
-                month = p1 - 1; 
-
-                // ATENÇÃO: Se isso continuar gerando "Agosto", significa que a string 
-                // que chega aqui É "01/08/2026". Nesse caso, o Google inverteu.
-                // Se quiser forçar a correção da inversão do Google, DESCOMENTE as 3 linhas abaixo:
-                /*
-                if (month > day && month === 7) { // Se virou Agosto (mês 7 index) e deveria ser Jan
-                     const temp = day; day = month + 1; month = temp - 1; // Inverte
-                }
-                */
             }
         } else {
             return null;
@@ -741,7 +728,7 @@ function combineDateAndTime(dateVal, timeVal) {
     }
 
     return testDate;
-}
+}   
         function calculateAndSetTotalHours() {
             const startDateVal = domElements.reportStartDateInput.value;
             const endDateVal = domElements.reportEndDateInput.value;
@@ -801,7 +788,7 @@ function populateMonthSelector() {
 
     const months = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
     
-    // Obter limites baseados nos dados globais
+    // **CORREÇÃO: Obter limites baseados nos dados globais**
     let minMonthIndex = 0;
     let maxMonthIndex = 11;
 
@@ -813,14 +800,14 @@ function populateMonthSelector() {
         if (year === minYear) {
             minMonthIndex = globalMinDate.getUTCMonth();
         } else if (year < minYear) {
-            minMonthIndex = 12; // Ano inválido (anterior aos dados), esconde tudo
+            minMonthIndex = 12; // Ano inválido (anterior aos dados)
         }
 
         // Se estamos no ano final, terminar no mês correto
         if (year === maxYear) {
             maxMonthIndex = globalMaxDate.getUTCMonth();
         } else if (year > maxYear) {
-            maxMonthIndex = -1; // Ano inválido (posterior aos dados), esconde tudo
+            maxMonthIndex = -1; // Ano inválido (posterior aos dados)
         }
     }
 
@@ -878,12 +865,11 @@ function handleDateFilterChange() {
     domElements.reportEndDateInput.value = '';
 
     if (week) {
-        // Lógica de semana permanece igual
         const [start, end] = week.split('|');
         domElements.reportStartDateInput.value = start;
         domElements.reportEndDateInput.value = end;
     } else if (month !== "" && year !== "") {
-        // --- CORREÇÃO AQUI ---
+        // **--- CORREÇÃO AQUI ---**
         const yearInt = parseInt(year);
         const monthInt = parseInt(month);
 
@@ -893,13 +879,13 @@ function handleDateFilterChange() {
         // Último dia matemático do mês (ex: 31/01)
         let endDate = new Date(Date.UTC(yearInt, monthInt + 1, 0));
 
-        // Se tivermos dados globais carregados
+        // **Se tivermos dados globais carregados**
         if (globalMinDate && globalMaxDate) {
             // Se a data de início calculada for anterior ao início real dos dados, ajusta
             if (startDate < globalMinDate) {
                 startDate = new Date(globalMinDate);
             }
-            // Se o final do mês calculado for posterior ao fim real dos dados, trava na data real (ex: 08/01)
+            // **Se o final do mês calculado for posterior ao fim real dos dados, trava na data real (ex: 08/01)**
             if (endDate > globalMaxDate) {
                 endDate = new Date(globalMaxDate);
             }
