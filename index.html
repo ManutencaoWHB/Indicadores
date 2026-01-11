@@ -671,13 +671,20 @@ function combineDateAndTime(dateVal, timeVal) {
 
     // Se for número (Excel Serial), converte
     if (typeof dateVal === 'number') {
-        const excelEpoch = new Date(Date.UTC(1899, 11, 30));
-        const dateObj = new Date(excelEpoch.getTime() + dateVal * 86400000);
+        // **CORREÇÃO: Época correta do Excel é 1/1/1900, mas o Excel tem um bug no ano 1900**
+        // Subtrai 2 porque: 1) Excel conta 1/1/1900 como dia 1 (não 0), 2) Bug do ano bissexto 1900
+        const EXCEL_EPOCH_OFFSET = 25569; // Dias entre 1/1/1900 e 1/1/1970 (época Unix)
+        const MILLISECONDS_PER_DAY = 86400000;
+        
+        // Converte serial Excel para timestamp Unix
+        const unixTimestamp = (dateVal - EXCEL_EPOCH_OFFSET) * MILLISECONDS_PER_DAY;
+        const dateObj = new Date(unixTimestamp);
+        
         year = dateObj.getUTCFullYear();
         month = dateObj.getUTCMonth();
         day = dateObj.getUTCDate();
     } 
-    // Se for Texto (Onde ocorre o erro)
+    // Se for Texto (DD/MM/AAAA ou AAAA-MM-DD)
     else if (typeof dateVal === 'string') {
         const cleanDate = dateVal.trim().split(' ')[0];
         let parts = [];
@@ -720,7 +727,12 @@ function combineDateAndTime(dateVal, timeVal) {
     if (timeVal != null) {
         if (typeof timeVal === 'number') {
             const totalSeconds = Math.round(timeVal * 86400);
-            testDate.setUTCHours(Math.floor(totalSeconds / 3600), Math.floor((totalSeconds % 3600) / 60), totalSeconds % 60, 0);
+            testDate.setUTCHours(
+                Math.floor(totalSeconds / 3600), 
+                Math.floor((totalSeconds % 3600) / 60), 
+                totalSeconds % 60, 
+                0
+            );
         } else if (typeof timeVal === 'string') {
             const [h = 0, m = 0, s = 0] = timeVal.split(':').map(Number);
             testDate.setUTCHours(h, m, s, 0);
@@ -728,7 +740,7 @@ function combineDateAndTime(dateVal, timeVal) {
     }
 
     return testDate;
-}   
+}
         function calculateAndSetTotalHours() {
             const startDateVal = domElements.reportStartDateInput.value;
             const endDateVal = domElements.reportEndDateInput.value;
