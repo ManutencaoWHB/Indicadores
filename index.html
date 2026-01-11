@@ -963,7 +963,38 @@ function handleDateFilterChange() {
                 filterSelect.appendChild(option);
             });
         }
-        
+// **FUNÇÃO AUXILIAR: Encontra a coluna de data automaticamente**
+function findDateColumn(row) {
+    const possibleNames = [
+        'Dt. Par. Real Ini',
+        'Dt Par Real Ini',
+        'Data Inicio',
+        'Data',
+        'Dt. Abertura',
+        'Data Abertura',
+        'data inicio',
+        'dt par real ini'
+    ];
+    
+    for (const name of possibleNames) {
+        if (row.hasOwnProperty(name) && row[name] != null && row[name] !== '') {
+            return name;
+        }
+    }
+    
+    // Se não encontrar, procura qualquer coluna que contenha "data" ou "dt"
+    for (const key of Object.keys(row)) {
+        const lowerKey = key.toLowerCase();
+        if ((lowerKey.includes('data') || lowerKey.includes('dt')) && 
+            row[key] != null && row[key] !== '') {
+            console.warn(`Coluna de data detectada automaticamente: "${key}"`);
+            return key;
+        }
+    }
+    
+    return null;
+}        
+
 function updateReportDateRange() {
     const startDateCol = domElements.startDateColumnSelect.value;
     const startTimeCol = domElements.startTimeColumnSelect.value;
@@ -3304,11 +3335,10 @@ async function getChatbotResponse(question) {
 
                 if (!jsonData || jsonData.length === 0) throw new Error("A planilha foi baixada mas parece estar vazia.");
 
-                // **DIAGNÓSTICO TEMPORÁRIO**
+                // **DIAGNÓSTICO COMPLETO**
                 console.log("=== DIAGNÓSTICO DE DATAS ===");
-                console.log("Primeira linha de dados:", jsonData[0]);
-                console.log("Tipo da data na coluna 'Dt. Par. Real Ini':", typeof jsonData[0]['Dt. Par. Real Ini']);
-                console.log("Valor bruto:", jsonData[0]['Dt. Par. Real Ini']);
+                console.log("TODAS as colunas disponíveis:", Object.keys(jsonData[0]));
+                console.log("Primeira linha COMPLETA:", jsonData[0]);
                 console.log("===========================");
 
                 // Sucesso: Configura a tela
