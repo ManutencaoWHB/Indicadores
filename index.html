@@ -3304,6 +3304,13 @@ async function getChatbotResponse(question) {
 
                 if (!jsonData || jsonData.length === 0) throw new Error("A planilha foi baixada mas parece estar vazia.");
 
+                // **DIAGNÓSTICO TEMPORÁRIO**
+                console.log("=== DIAGNÓSTICO DE DATAS ===");
+                console.log("Primeira linha de dados:", jsonData[0]);
+                console.log("Tipo da data na coluna 'Dt. Par. Real Ini':", typeof jsonData[0]['Dt. Par. Real Ini']);
+                console.log("Valor bruto:", jsonData[0]['Dt. Par. Real Ini']);
+                console.log("===========================");
+
                 // Sucesso: Configura a tela
                 const headers = Object.keys(jsonData[0]);
                 populateSelectors(headers);
