@@ -3291,78 +3291,88 @@ async function getChatbotResponse(question) {
             });
         }
 
-// ... (todo o código anterior permanece igual até chegar aqui)
+async function loadDataFromGoogleDrive() {
+    const sheetID = "10L3oH3z2kV2z5ilfZmprknokAR4NwszvGeGG7bfDxls"; 
+    const sheetGID = "179231506"; 
+    const googleSheetUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv&gid=${sheetGID}`;
 
-        // FUNÇÃO NOVA: Carregar dados direto do Google Sheets
-        async function loadDataFromGoogleDrive() {
-            // SEU ID REAL (Extraído do link de edição)
-            const sheetID = "10L3oH3z2kV2z5ilfZmprknokAR4NwszvGeGG7bfDxls"; 
-            
-            // O ID DA ABA (O número que vem depois de 'gid=' no seu link original)
-            const sheetGID = "179231506"; 
-
-            // Monta o link especial da API de Visualização do Google (GVIZ)
-            // Esse link força o Google a entregar um CSV limpo, sem HTML em volta
-            const googleSheetUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv&gid=${sheetGID}`;
-
-            try {
-                domElements.fileNameDisplay.textContent = "Conectando ao Google Drive...";
-                
-                const response = await fetch(googleSheetUrl);
-                
-                // Se o status não for 200 OK, deu erro na conexão
-                if (!response.ok) {
-                    throw new Error(`Erro de conexão (${response.status}). Verifique se a planilha está como 'Qualquer pessoa com o link'.`);
-                }
-
-                const data = await response.arrayBuffer();
-                
-                // Tenta ler o arquivo
-                // Se a planilha não estiver pública, o Google manda uma página de Login (HTML)
-                // e é aqui que dava o erro "Invalid HTML".
-                let workbook;
-                try {
-                    workbook = XLSX.read(data, { type: 'array', cellDates: false });
-                } catch (readError) {
-                    throw new Error("O Google bloqueou o acesso. Certeza que você colocou 'Qualquer pessoa com o link' no botão Compartilhar?");
-                }
-
-                const sheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[sheetName];
-                
-                // Usar raw: true para manter objetos Date nativos, facilitando o processamento
-                jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false, defval: "" });
-
-                if (!jsonData || jsonData.length === 0) throw new Error("A planilha foi baixada mas parece estar vazia.");
-
-                // **DIAGNÓSTICO COMPLETO**
-                console.log("=== DIAGNÓSTICO DE DATAS ===");
-                console.log("TODAS as colunas disponíveis:", Object.keys(jsonData[0]));
-                console.log("Primeira linha COMPLETA:", jsonData[0]);
-                console.log("===========================");
-
-                // Sucesso: Configura a tela
-                const headers = Object.keys(jsonData[0]);
-                populateSelectors(headers);
-                updateReportDateRange();
-                populateProductionLineFilter();
-                
-                domElements.fileNameDisplay.textContent = "Dados carregados via Nuvem (Google)";
-                domElements.fileNameDisplay.classList.add("text-green-600", "font-bold");
-                domElements.analysisSection.classList.remove('hidden');
-                domElements.analyzerNoData.classList.add('hidden');
-                domElements.resultsSection.classList.add('hidden');
-                switchPage('analyzer-page');
-
-                // Se quiser rodar a análise direto, descomente a linha abaixo:
-                // runAnalysis(); 
-
-            } catch (err) {
-                console.error("Erro Google Drive:", err);
-                showMessage("Falha no carregamento automático: " + err.message);
-                domElements.fileNameDisplay.textContent = "Erro ao carregar da nuvem.";
-            }
+    try {
+        domElements.fileNameDisplay.textContent = "Conectando ao Google Drive...";
+        
+        const response = await fetch(googleSheetUrl);
+        
+        if (!response.ok) {
+            throw new Error(`Erro de conexão (${response.status}). Verifique se a planilha está como 'Qualquer pessoa com o link'.`);
         }
+
+        const data = await response.arrayBuffer();
+        
+        let workbook;
+        try {
+            workbook = XLSX.read(data, { type: 'array', cellDates: false, raw: false });
+        } catch (readError) {
+            throw new Error("O Google bloqueou o acesso. Certeza que você colocou 'Qualquer pessoa com o link' no botão Compartilhar?");
+        }
+
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        
+        // **MUDANÇA AQUI: raw: false para pegar texto puro**
+        jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false, defval: "" });
+
+        if (!jsonData || jsonData.length === 0) throw new Error("A planilha foi baixada mas parece estar vazia.");
+
+        // **DIAGNÓSTICO COMPLETO**
+        console.log("=== DIAGNÓSTICO COMPLETO ===");
+        console.log("📋 TODAS as colunas:", Object.keys(jsonData[0]));
+        console.log("📄 Primeira linha completa:", jsonData[0]);
+        
+        // Procura coluna de data
+        const allColumns = Object.keys(jsonData[0]);
+        const dateColumn = allColumns.find(col => 
+            col.toLowerCase().includes('data') || 
+            col.toLowerCase().includes('dt')
+        );
+        
+        if (dateColumn) {
+            console.log("✅ Coluna de data encontrada:", dateColumn);
+            console.log("📌 Tipo:", typeof jsonData[0][dateColumn]);
+            console.log("📌 Valor BRUTO:", jsonData[0][dateColumn]);
+            
+            // Testa conversão
+            const testDate = combineDateAndTime(jsonData[0][dateColumn], null);
+            if (testDate) {
+                console.log("✅ Data convertida:", testDate);
+                console.log("📅 Ano:", testDate.getUTCFullYear());
+                console.log("📅 Mês:", testDate.getUTCMonth() + 1);
+                console.log("📅 Dia:", testDate.getUTCDate());
+            } else {
+                console.error("❌ ERRO ao converter data!");
+            }
+        } else {
+            console.error("❌ NENHUMA coluna de data encontrada!");
+        }
+        console.log("===========================");
+
+        // Sucesso: Configura a tela
+        const headers = Object.keys(jsonData[0]);
+        populateSelectors(headers);
+        updateReportDateRange();
+        populateProductionLineFilter();
+        
+        domElements.fileNameDisplay.textContent = "Dados carregados via Nuvem (Google)";
+        domElements.fileNameDisplay.classList.add("text-green-600", "font-bold");
+        domElements.analysisSection.classList.remove('hidden');
+        domElements.analyzerNoData.classList.add('hidden');
+        domElements.resultsSection.classList.add('hidden');
+        switchPage('analyzer-page');
+
+    } catch (err) {
+        console.error("Erro Google Drive:", err);
+        showMessage("Falha no carregamento automático: " + err.message);
+        domElements.fileNameDisplay.textContent = "Erro ao carregar da nuvem.";
+    }
+}
 
         document.addEventListener('DOMContentLoaded', () => {
             // ... (Mantenha as definições de domElements aqui, igual já estava)
