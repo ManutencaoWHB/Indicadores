@@ -666,10 +666,10 @@
         };
 
 function combineDateAndTime(dateVal, timeVal) {
-    if (dateVal == null) return null;
+    if (dateVal == null || dateVal === "") return null;
     let year, month, day;
 
-    // Caso 1: Excel Serial Number (número puro)
+    // Se for número (Excel Serial), converte
     if (typeof dateVal === 'number') {
         const excelEpoch = new Date(Date.UTC(1899, 11, 30));
         const dateObj = new Date(excelEpoch.getTime() + dateVal * 86400000);
@@ -677,34 +677,49 @@ function combineDateAndTime(dateVal, timeVal) {
         month = dateObj.getUTCMonth();
         day = dateObj.getUTCDate();
     } 
-    // Caso 2: Texto (AQUI ESTÁ A CORREÇÃO PRINCIPAL)
+    // Se for Texto (Onde ocorre o erro)
     else if (typeof dateVal === 'string') {
-        const cleanDate = dateVal.trim().split(' ')[0]; // Remove horas se houver
+        const cleanDate = dateVal.trim().split(' ')[0];
         let parts = [];
         
         if (cleanDate.includes('/')) parts = cleanDate.split('/');
         else if (cleanDate.includes('-')) parts = cleanDate.split('-');
 
         if (parts.length === 3) {
-            // Se o primeiro número for o ano (AAAA-MM-DD)
+            // Verifica formato ISO (AAAA-MM-DD)
             if (parts[0].length === 4) {
                 year = parseInt(parts[0], 10);
                 month = parseInt(parts[1], 10) - 1;
                 day = parseInt(parts[2], 10);
             } else {
-                // FORÇA O PADRÃO BR: O primeiro número É O DIA
-                day = parseInt(parts[0], 10);
-                month = parseInt(parts[1], 10) - 1; // Mês começa em 0 no JS
-                
-                let p2 = parseInt(parts[2], 10);
-                // Corrige ano com 2 dígitos
+                // PADRÃO BRASILEIRO (DD/MM/AAAA)
+                const p0 = parseInt(parts[0], 10); // Primeiro número
+                const p1 = parseInt(parts[1], 10); // Segundo número
+                const p2 = parseInt(parts[2], 10); // Terceiro número (ano)
+
+                // CORREÇÃO DE ANO (ex: 26 -> 2026)
                 year = parts[2].length === 4 ? p2 : (p2 < 50 ? 2000 + p2 : 1900 + p2);
+
+                // LÓGICA DE DETECÇÃO DE INVERSÃO
+                // Se o Google mandou MM/DD, o "Dia" (p0) pode ser 01 (Jan) e o "Mês" (p1) ser 08 (Ago).
+                // Mas nos seus dados reais (até 08/01), ambos são < 12, então é ambíguo.
+                // VAMOS FORÇAR A LEITURA: O PRIMEIRO NÚMERO É O DIA.
+                day = p0;
+                month = p1 - 1; 
+
+                // ATENÇÃO: Se isso continuar gerando "Agosto", significa que a string 
+                // que chega aqui É "01/08/2026". Nesse caso, o Google inverteu.
+                // Se quiser forçar a correção da inversão do Google, DESCOMENTE as 3 linhas abaixo:
+                /*
+                if (month > day && month === 7) { // Se virou Agosto (mês 7 index) e deveria ser Jan
+                     const temp = day; day = month + 1; month = temp - 1; // Inverte
+                }
+                */
             }
         } else {
             return null;
         }
     } 
-    // Caso 3: Objeto Date (fallback)
     else if (dateVal instanceof Date) {
         year = dateVal.getUTCFullYear();
         month = dateVal.getUTCMonth();
@@ -715,7 +730,6 @@ function combineDateAndTime(dateVal, timeVal) {
     const testDate = new Date(Date.UTC(year, month, day));
     if (isNaN(testDate.getTime())) return null;
 
-    // Ajuste de Hora (se houver)
     if (timeVal != null) {
         if (typeof timeVal === 'number') {
             const totalSeconds = Math.round(timeVal * 86400);
@@ -3098,7 +3112,7 @@ async function getChatbotResponse(question) {
                         const sheetName = workbook.SheetNames[0];
                         const worksheet = workbook.Sheets[sheetName];
                         // Usar raw: true para manter objetos Date nativos, facilitando o processamento
-                        jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: true, dateNF: 'dd/mm/yyyy' });
+                        jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false, defval: "" });
                         if (jsonData.length === 0) throw new Error("A planilha parece estar vazia.");
                         const headers = Object.keys(jsonData[0]);
                         populateSelectors(headers);
@@ -3288,7 +3302,7 @@ async function getChatbotResponse(question) {
                 const worksheet = workbook.Sheets[sheetName];
                 
                 // Usar raw: true para manter objetos Date nativos, facilitando o processamento
-                jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: true, dateNF: 'dd/mm/yyyy' });
+                jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false, defval: "" });
 
                 if (!jsonData || jsonData.length === 0) throw new Error("A planilha foi baixada mas parece estar vazia.");
 
