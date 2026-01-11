@@ -669,56 +669,53 @@ function combineDateAndTime(dateVal, timeVal) {
     if (dateVal == null) return null;
     let year, month, day;
 
-    // Caso 1: O Excel entregou um número serial (ex: 45300)
+    // Caso 1: Excel Serial Number (número puro)
     if (typeof dateVal === 'number') {
         const excelEpoch = new Date(Date.UTC(1899, 11, 30));
         const dateObj = new Date(excelEpoch.getTime() + dateVal * 86400000);
         year = dateObj.getUTCFullYear();
-        month = dateObj.getUTCMonth(); // 0-11
+        month = dateObj.getUTCMonth();
         day = dateObj.getUTCDate();
     } 
-    // Caso 2: Objeto Date do JS
-    else if (dateVal instanceof Date) {
-        year = dateVal.getUTCFullYear();
-        month = dateVal.getUTCMonth();
-        day = dateVal.getUTCDate();
-    } 
-    // Caso 3: String (Onde ocorre o erro de inversão)
+    // Caso 2: Texto (AQUI ESTÁ A CORREÇÃO PRINCIPAL)
     else if (typeof dateVal === 'string') {
+        const cleanDate = dateVal.trim().split(' ')[0]; // Remove horas se houver
         let parts = [];
-        // Limpa a string e tenta dividir por / ou -
-        const cleanDate = dateVal.trim().split(' ')[0]; 
+        
         if (cleanDate.includes('/')) parts = cleanDate.split('/');
         else if (cleanDate.includes('-')) parts = cleanDate.split('-');
 
         if (parts.length === 3) {
-            // Se o primeiro número tem 4 dígitos, é AAAA-MM-DD (ISO)
+            // Se o primeiro número for o ano (AAAA-MM-DD)
             if (parts[0].length === 4) {
                 year = parseInt(parts[0], 10);
                 month = parseInt(parts[1], 10) - 1;
                 day = parseInt(parts[2], 10);
             } else {
-                // FORÇA O PADRÃO BRASILEIRO: DD/MM/AAAA
-                // O primeiro número (parts[0]) É O DIA.
+                // FORÇA O PADRÃO BR: O primeiro número É O DIA
                 day = parseInt(parts[0], 10);
-                month = parseInt(parts[1], 10) - 1; // JS conta meses de 0 a 11
+                month = parseInt(parts[1], 10) - 1; // Mês começa em 0 no JS
+                
                 let p2 = parseInt(parts[2], 10);
-                // Ajuste para anos com 2 dígitos (ex: 26 vira 2026)
+                // Corrige ano com 2 dígitos
                 year = parts[2].length === 4 ? p2 : (p2 < 50 ? 2000 + p2 : 1900 + p2);
             }
         } else {
-            return null; // Formato desconhecido
+            return null;
         }
+    } 
+    // Caso 3: Objeto Date (fallback)
+    else if (dateVal instanceof Date) {
+        year = dateVal.getUTCFullYear();
+        month = dateVal.getUTCMonth();
+        day = dateVal.getUTCDate();
     } 
     else return null;
 
-    // Validação básica se a data existe (ex: 31 de Fevereiro)
     const testDate = new Date(Date.UTC(year, month, day));
-    if (isNaN(testDate.getTime()) || testDate.getUTCMonth() !== month) {
-        return null;
-    }
+    if (isNaN(testDate.getTime())) return null;
 
-    // Processamento da Hora (mantido igual)
+    // Ajuste de Hora (se houver)
     if (timeVal != null) {
         if (typeof timeVal === 'number') {
             const totalSeconds = Math.round(timeVal * 86400);
@@ -726,8 +723,6 @@ function combineDateAndTime(dateVal, timeVal) {
         } else if (typeof timeVal === 'string') {
             const [h = 0, m = 0, s = 0] = timeVal.split(':').map(Number);
             testDate.setUTCHours(h, m, s, 0);
-        } else if (timeVal instanceof Date) {
-            testDate.setUTCHours(timeVal.getUTCHours(), timeVal.getUTCMinutes(), timeVal.getUTCSeconds(), 0);
         }
     }
 
@@ -3099,7 +3094,7 @@ async function getChatbotResponse(question) {
                     try {
                         hideMessage();
                         const data = new Uint8Array(e.target.result);
-                        const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                        const workbook = XLSX.read(data, { type: 'array', cellDates: false });
                         const sheetName = workbook.SheetNames[0];
                         const worksheet = workbook.Sheets[sheetName];
                         // Usar raw: true para manter objetos Date nativos, facilitando o processamento
@@ -3284,7 +3279,7 @@ async function getChatbotResponse(question) {
                 // e é aqui que dava o erro "Invalid HTML".
                 let workbook;
                 try {
-                    workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                    workbook = XLSX.read(data, { type: 'array', cellDates: false });
                 } catch (readError) {
                     throw new Error("O Google bloqueou o acesso. Certeza que você colocou 'Qualquer pessoa com o link' no botão Compartilhar?");
                 }
