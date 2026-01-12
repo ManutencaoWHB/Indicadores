@@ -665,105 +665,50 @@
             return parseFloat(String(value).replace(/\./g, '').replace(',', '.'));
         };
 
-function combineDateAndTime(dateVal, timeVal) {
-    if (dateVal == null || dateVal === "") return null;
-    let year, month, day;
+        function combineDateAndTime(dateVal, timeVal) {
+            if (dateVal == null) return null;
+            let year, month, day;
 
-    // Se for número (Excel Serial), converte
-    if (typeof dateVal === 'number') {
-        // **CORREÇÃO: Época correta do Excel é 1/1/1900, mas o Excel tem um bug no ano 1900**
-        // Subtrai 2 porque: 1) Excel conta 1/1/1900 como dia 1 (não 0), 2) Bug do ano bissexto 1900
-        const EXCEL_EPOCH_OFFSET = 25569; // Dias entre 1/1/1900 e 1/1/1970 (época Unix)
-        const MILLISECONDS_PER_DAY = 86400000;
-        
-        // Converte serial Excel para timestamp Unix
-        const unixTimestamp = (dateVal - EXCEL_EPOCH_OFFSET) * MILLISECONDS_PER_DAY;
-        const dateObj = new Date(unixTimestamp);
-        
-        year = dateObj.getUTCFullYear();
-        month = dateObj.getUTCMonth();
-        day = dateObj.getUTCDate();
-    } 
-    // Se for Texto (DD/MM/AAAA ou AAAA-MM-DD)
-    else if (typeof dateVal === 'string') {
-        const cleanDate = dateVal.trim().split(' ')[0];
-        let parts = [];
-        
-        if (cleanDate.includes('/')) parts = cleanDate.split('/');
-        else if (cleanDate.includes('-')) parts = cleanDate.split('-');
+            if (dateVal instanceof Date) {
+                year = dateVal.getUTCFullYear();
+                month = dateVal.getUTCMonth() + 1;
+                day = dateVal.getUTCDate();
+            } else if (typeof dateVal === 'number') {
+                const excelEpoch = new Date(1899, 11, 30);
+                const dateObj = new Date(excelEpoch.getTime() + dateVal * 86400000);
+                year = dateObj.getUTCFullYear();
+                month = dateObj.getUTCMonth() + 1;
+                day = dateObj.getUTCDate();
+            } else if (typeof dateVal === 'string') {
+                const parts = String(dateVal).split(' ')[0].split(/[\/-]/);
+                if (parts.length === 3) {
+                    const p1 = parseInt(parts[0], 10);
+                    const p2 = parseInt(parts[1], 10);
+                    const p3 = parseInt(parts[2], 10);
+                    year = p3.toString().length === 4 ? p3 : (p3 < 50 ? 2000 + p3 : 1900 + p3);
+                    if (p1 > 12) { day = p1; month = p2; } 
+                    else { month = p1; day = p2; }
+                } else { return null; }
+            } else { return null; }
 
-        if (parts.length === 3) {
-            const p0 = parseInt(parts[0], 10);
-            const p1 = parseInt(parts[1], 10);
-            const p2 = parseInt(parts[2], 10);
-
-            // Verifica formato ISO (AAAA-MM-DD)
-            if (parts[0].length === 4) {
-                year = p0;
-                month = p1 - 1;
-                day = p2;
-            } else {
-                // **FORMATO BRASILEIRO FORÇADO: DD/MM/AAAA**
-                day = p0;  // Primeiro número = DIA
-                month = p1 - 1;  // Segundo número = MÊS (ajustado para índice 0)
-                
-                // Correção de ano (26 -> 2026)
-                year = parts[2].length === 4 ? p2 : (p2 < 50 ? 2000 + p2 : 1900 + p2);
+            if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+            let dateObj = new Date(Date.UTC(year, month - 1, day));
+            if (timeVal != null) {
+                if (typeof timeVal === 'number' && timeVal > 0 && timeVal < 1) {
+                    const totalSeconds = timeVal * 86400;
+                    const hours = Math.floor(totalSeconds / 3600);
+                    const minutes = Math.floor((totalSeconds % 3600) / 60);
+                    dateObj.setUTCHours(hours, minutes, 0, 0);
+                } else if (typeof timeVal === 'string') {
+                    const [hours, minutes, seconds] = timeVal.split(':');
+                    dateObj.setUTCHours(parseInt(hours || 0), parseInt(minutes || 0), parseInt(seconds || 0), 0);
+                } else if (timeVal instanceof Date) {
+                    dateObj.setUTCHours(timeVal.getUTCHours(), timeVal.getUTCMinutes(), timeVal.getUTCSeconds(), 0);
+                }
             }
-        } else {
-            return null;
+            return dateObj;
         }
-    } 
-    else if (dateVal instanceof Date) {
-        year = dateVal.getUTCFullYear();
-        month = dateVal.getUTCMonth();
-        day = dateVal.getUTCDate();
-    } 
-    else return null;
 
-    const testDate = new Date(Date.UTC(year, month, day));
-    if (isNaN(testDate.getTime())) return null;
-
-    if (timeVal != null) {
-        if (typeof timeVal === 'number') {
-            const totalSeconds = Math.round(timeVal * 86400);
-            testDate.setUTCHours(
-                Math.floor(totalSeconds / 3600), 
-                Math.floor((totalSeconds % 3600) / 60), 
-                totalSeconds % 60, 
-                0
-            );
-        } else if (typeof timeVal === 'string') {
-            const [h = 0, m = 0, s = 0] = timeVal.split(':').map(Number);
-            testDate.setUTCHours(h, m, s, 0);
-        }
-    }
-
-    // **VALIDAÇÃO FINAL**
-    const testDate = new Date(Date.UTC(year, month, day));
-    if (isNaN(testDate.getTime())) return null;
-    
-    // **VALIDAÇÃO DE SANIDADE: Rejeita datas absurdas**
-    const testYear = testDate.getUTCFullYear();
-    if (testYear < 2020 || testYear > 2027) {
-        console.warn(`⚠️ Data rejeitada (ano ${testYear}):`, {
-            input: dateVal,
-            parsed: testDate
-        });
-        return null; // Ignora essa data
-    }
-
-    // **ADICIONA HORÁRIO SE FORNECIDO**
-    if (timeVal != null) {
-        // ... (código de hora) ...
-    }
-
-    return testDate;
-}
-
-
-
-}
         function calculateAndSetTotalHours() {
             const startDateVal = domElements.reportStartDateInput.value;
             const endDateVal = domElements.reportEndDateInput.value;
@@ -798,71 +743,39 @@ function combineDateAndTime(dateVal, timeVal) {
         function populateYearSelector() {
             domElements.yearSelect.innerHTML = '<option value="">Ano (Todos)</option>';
             if (!globalMinDate || !globalMaxDate) return;
-            
             const startYear = globalMinDate.getUTCFullYear();
             const endYear = globalMaxDate.getUTCFullYear();
-            
-            // **VALIDAÇÃO: Só mostra anos que realmente existem nos dados**
-            console.log(`📅 Intervalo de anos REAL: ${startYear} até ${endYear}`);
-            
             for (let year = startYear; year <= endYear; year++) {
                 const option = document.createElement('option');
                 option.value = year;
                 option.textContent = year;
                 domElements.yearSelect.appendChild(option);
             }
-            
             if (domElements.yearSelect.value) {
                 populateMonthSelector();
                 populateWeekSelector();
             }
         }
-function populateMonthSelector() {
-    domElements.monthSelect.innerHTML = '<option value="">Mês (Todos)</option>';
-    const year = parseInt(domElements.yearSelect.value);
-    
-    if (isNaN(year)) {
-        domElements.weekSelect.innerHTML = '<option value="">Semana (Todas)</option>';
-        return; 
-    }
 
-    const months = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-    
-    let minMonthIndex = 0;
-    let maxMonthIndex = 11;
-
-    if (globalMinDate && globalMaxDate) {
-        const minYear = globalMinDate.getUTCFullYear();
-        const maxYear = globalMaxDate.getUTCFullYear();
-
-        // Se estamos no ano inicial, começar do mês correto
-        if (year === minYear) {
-            minMonthIndex = globalMinDate.getUTCMonth();
-        } else if (year < minYear) {
-            minMonthIndex = 12; // Ano inválido (anterior aos dados)
+        function populateMonthSelector() {
+            domElements.monthSelect.innerHTML = '<option value="">Mês (Todos)</option>';
+            const year = parseInt(domElements.yearSelect.value);
+            if (isNaN(year)) {
+                domElements.weekSelect.innerHTML = '<option value="">Semana (Todas)</option>';
+                return; 
+            }
+            const months = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+            months.forEach((month, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = month;
+                domElements.monthSelect.appendChild(option);
+            });
+            if (domElements.monthSelect.value) {
+                populateWeekSelector();
+            }
         }
 
-        // Se estamos no ano final, terminar no mês correto
-        if (year === maxYear) {
-            maxMonthIndex = globalMaxDate.getUTCMonth();
-        } else if (year > maxYear) {
-            maxMonthIndex = -1; // Ano inválido (posterior aos dados)
-        }
-    }
-
-    months.forEach((month, index) => {
-        if (index >= minMonthIndex && index <= maxMonthIndex) {
-            const option = document.createElement('option');
-            option.value = index;
-            option.textContent = month;
-            domElements.monthSelect.appendChild(option);
-        }
-    });
-
-    if (domElements.monthSelect.value) {
-        populateWeekSelector();
-    }
-}
         function populateWeekSelector() {
             domElements.weekSelect.innerHTML = '<option value="">Semana (Todas)</option>';
             const year = parseInt(domElements.yearSelect.value);
@@ -895,107 +808,43 @@ function populateMonthSelector() {
             }
         }
         
-function handleDateFilterChange() {
-    const year = domElements.yearSelect.value;
-    const month = domElements.monthSelect.value;
-    const week = domElements.weekSelect.value;
+        function handleDateFilterChange() {
+            const year = domElements.yearSelect.value;
+            const month = domElements.monthSelect.value;
+            const week = domElements.weekSelect.value;
 
-    domElements.reportStartDateInput.value = '';
-    domElements.reportEndDateInput.value = '';
+            domElements.reportStartDateInput.value = '';
+            domElements.reportEndDateInput.value = '';
 
-    if (week) {
-        const [start, end] = week.split('|');
-        domElements.reportStartDateInput.value = start;
-        domElements.reportEndDateInput.value = end;
-    } else if (month !== "" && year !== "") {
-        const yearInt = parseInt(year);
-        const monthInt = parseInt(month);
-
-        // Primeiro dia do mês
-        let startDate = new Date(Date.UTC(yearInt, monthInt, 1));
-        
-        // Último dia MATEMÁTICO do mês (ex: 31/01/2026)
-        let endDate = new Date(Date.UTC(yearInt, monthInt + 1, 0));
-
-        // **VALIDAÇÃO CRÍTICA: Respeita os limites REAIS dos dados**
-        if (globalMinDate && globalMaxDate) {
-            // Se o início do mês é antes dos dados, ajusta
-            if (startDate < globalMinDate) {
-                startDate = new Date(globalMinDate);
+            if (week) {
+                const [start, end] = week.split('|');
+                domElements.reportStartDateInput.value = start;
+                domElements.reportEndDateInput.value = end;
+            } else if (month !== "" && year !== "") {
+                const startDate = new Date(Date.UTC(parseInt(year), parseInt(month), 1));
+                const endDate = new Date(Date.UTC(parseInt(year), parseInt(month) + 1, 0));
+                domElements.reportStartDateInput.value = toYYYYMMDD(startDate);
+                domElements.reportEndDateInput.value = toYYYYMMDD(endDate);
+            } else if (year !== "") {
+                domElements.reportStartDateInput.value = `${year}-01-01`;
+                domElements.reportEndDateInput.value = `${year}-12-31`;
+            } else { 
+                if (globalMinDate && globalMaxDate) {
+                    domElements.reportStartDateInput.value = toYYYYMMDD(globalMinDate);
+                    domElements.reportEndDateInput.value = toYYYYMMDD(globalMaxDate);
+                }
             }
-            
-            // **CRÍTICO: Se o fim do mês é DEPOIS dos dados, trava na data real**
-            if (endDate > globalMaxDate) {
-                endDate = new Date(globalMaxDate);
+
+            if (globalMinDate && domElements.reportStartDateInput.value && new Date(domElements.reportStartDateInput.value) < globalMinDate) {
+                domElements.reportStartDateInput.value = toYYYYMMDD(globalMinDate);
             }
-            
-            // **SEGURANÇA EXTRA: Se startDate ficou maior que endDate, inverte**
-            if (startDate > endDate) {
-                startDate = new Date(globalMaxDate);
-                endDate = new Date(globalMaxDate);
+            if (globalMaxDate && domElements.reportEndDateInput.value && new Date(domElements.reportEndDateInput.value) > globalMaxDate) {
+                domElements.reportEndDateInput.value = toYYYYMMDD(globalMaxDate);
             }
-            
-            console.log(`📅 Janeiro/2026: ${toYYYYMMDD(startDate)} até ${toYYYYMMDD(endDate)}`);
+
+            calculateAndSetTotalHours();
         }
 
-        domElements.reportStartDateInput.value = toYYYYMMDD(startDate);
-        domElements.reportEndDateInput.value = toYYYYMMDD(endDate);
-
-    } else if (year !== "") {
-        // Lógica para Ano Inteiro
-        let startDate = new Date(Date.UTC(parseInt(year), 0, 1));
-        let endDate = new Date(Date.UTC(parseInt(year), 11, 31));
-
-        if (globalMinDate && globalMaxDate) {
-            if (startDate < globalMinDate) startDate = new Date(globalMinDate);
-            if (endDate > globalMaxDate) endDate = new Date(globalMaxDate);
-        }
-
-        domElements.reportStartDateInput.value = toYYYYMMDD(startDate);
-        domElements.reportEndDateInput.value = toYYYYMMDD(endDate);
-
-    } else { 
-        // Lógica padrão (sem filtro)
-        if (globalMinDate && globalMaxDate) {
-            domElements.reportStartDateInput.value = toYYYYMMDD(globalMinDate);
-            domElements.reportEndDateInput.value = toYYYYMMDD(globalMaxDate);
-        }
-    }
-
-    // Trava de segurança final
-    if (globalMinDate && domElements.reportStartDateInput.value && new Date(domElements.reportStartDateInput.value) < globalMinDate) {
-        domElements.reportStartDateInput.value = toYYYYMMDD(globalMinDate);
-    }
-    if (globalMaxDate && domElements.reportEndDateInput.value && new Date(domElements.reportEndDateInput.value) > globalMaxDate) {
-        domElements.reportEndDateInput.value = toYYYYMMDD(globalMaxDate);
-    }
-
-// Trava de segurança final
-    if (globalMinDate && domElements.reportStartDateInput.value) {
-        const inputStart = new Date(domElements.reportStartDateInput.value + 'T00:00:00Z');
-        if (inputStart < globalMinDate) {
-            domElements.reportStartDateInput.value = toYYYYMMDD(globalMinDate);
-        }
-    }
-    
-    if (globalMaxDate && domElements.reportEndDateInput.value) {
-        const inputEnd = new Date(domElements.reportEndDateInput.value + 'T23:59:59Z');
-        if (inputEnd > globalMaxDate) {
-            domElements.reportEndDateInput.value = toYYYYMMDD(globalMaxDate);
-        }
-    }
-    
-    // **VALIDAÇÃO CRÍTICA: Garante que startDate <= endDate**
-    const finalStart = domElements.reportStartDateInput.value;
-    const finalEnd = domElements.reportEndDateInput.value;
-    
-    if (finalStart && finalEnd && finalStart > finalEnd) {
-        console.warn('⚠️ Data de início maior que fim! Corrigindo...');
-        domElements.reportEndDateInput.value = finalStart; // Ajusta para o mesmo dia
-    }
-
-    calculateAndSetTotalHours();
-}
         function clearFilters() {
             domElements.yearSelect.value = "";
             domElements.monthSelect.value = "";
@@ -1022,120 +871,51 @@ function handleDateFilterChange() {
                 filterSelect.appendChild(option);
             });
         }
-// **FUNÇÃO AUXILIAR: Encontra a coluna de data automaticamente**
-function findDateColumn(row) {
-    const possibleNames = [
-        'Dt. Par. Real Ini',
-        'Dt Par Real Ini',
-        'Data Inicio',
-        'Data',
-        'Dt. Abertura',
-        'Data Abertura',
-        'data inicio',
-        'dt par real ini'
-    ];
-    
-    for (const name of possibleNames) {
-        if (row.hasOwnProperty(name) && row[name] != null && row[name] !== '') {
-            return name;
-        }
-    }
-    
-    // Se não encontrar, procura qualquer coluna que contenha "data" ou "dt"
-    for (const key of Object.keys(row)) {
-        const lowerKey = key.toLowerCase();
-        if ((lowerKey.includes('data') || lowerKey.includes('dt')) && 
-            row[key] != null && row[key] !== '') {
-            console.warn(`Coluna de data detectada automaticamente: "${key}"`);
-            return key;
-        }
-    }
-    
-    return null;
-}        
-
-function updateReportDateRange() {
-    const startDateCol = domElements.startDateColumnSelect.value;
-    const startTimeCol = domElements.startTimeColumnSelect.value;
-    
-    const resetAll = () => {
-        globalMinDate = null;
-        globalMaxDate = null;
-        ['reportStartDateInput', 'reportEndDateInput'].forEach(id => {
-            domElements[id].min = ''; domElements[id].max = ''; domElements[id].value = '';
-        });
-        domElements.yearSelect.innerHTML = '<option value="">Ano (Todos)</option>';
-        domElements.monthSelect.innerHTML = '<option value="">Mês (Todos)</option>';
-        domElements.weekSelect.innerHTML = '<option value="">Semana (Todas)</option>';
-        populateProductionLineFilter();
-    };
-
-    if (!startDateCol || !jsonData) {
-        resetAll(); return;
-    }
-
-    let minDate = null; 
-    let maxDate = null;
-    const yearsFound = new Set(); // Para rastrear quais anos aparecem
-
-const yearsFound = new Set();
-
-    jsonData.forEach((row, index) => {
-        const currentDate = combineDateAndTime(row[startDateCol], row[startTimeCol]);
         
-        if (currentDate && !isNaN(currentDate.getTime())) {
-            const y = currentDate.getUTCFullYear();
-            yearsFound.add(y);
-            
-            // **DIAGNÓSTICO: Mostra datas de 2027+ com detalhes da linha**
-            if (y >= 2027) {
-                console.warn(`⚠️ LINHA ${index + 2}: Data suspeita encontrada!`, {
-                    valorOriginalData: row[startDateCol],
-                    valorOriginalHora: row[startTimeCol],
-                    dataConvertida: currentDate,
-                    ano: y,
-                    mes: currentDate.getUTCMonth() + 1,
-                    dia: currentDate.getUTCDate()
+        function updateReportDateRange() {
+            const startDateCol = domElements.startDateColumnSelect.value;
+            const startTimeCol = domElements.startTimeColumnSelect.value;
+            const resetAll = () => {
+                globalMinDate = null;
+                globalMaxDate = null;
+                ['reportStartDateInput', 'reportEndDateInput'].forEach(id => {
+                    domElements[id].min = ''; domElements[id].max = ''; domElements[id].value = '';
                 });
+                domElements.yearSelect.innerHTML = '<option value="">Ano (Todos)</option>';
+                domElements.monthSelect.innerHTML = '<option value="">Mês (Todos)</option>';
+                domElements.weekSelect.innerHTML = '<option value="">Semana (Todas)</option>';
+                populateProductionLineFilter();
+            };
+            if (!startDateCol || !jsonData) {
+                resetAll(); return;
             }
-            
-            // Valida apenas anos razoáveis (2000-2100)
-            if (y >= 2000 && y <= 2100) {
-                if (!minDate || currentDate < minDate) minDate = currentDate;
-                if (!maxDate || currentDate > maxDate) maxDate = currentDate;
+            let minDate = null; let maxDate = null;
+            jsonData.forEach(row => {
+                const currentDate = combineDateAndTime(row[startDateCol], row[startTimeCol]);
+                if (currentDate && !isNaN(currentDate.getTime())) {
+                    if (!minDate || currentDate < minDate) minDate = currentDate;
+                    if (!maxDate || currentDate > maxDate) maxDate = currentDate;
+                }
+            });
+            if (minDate && maxDate) {
+                globalMinDate = minDate;
+                globalMaxDate = maxDate;
+                const minStr = toYYYYMMDD(minDate);
+                const maxStr = toYYYYMMDD(maxDate);
+                domElements.reportStartDateInput.min = minStr;
+                domElements.reportStartDateInput.max = maxStr;
+                domElements.reportEndDateInput.min = minStr;
+                domElements.reportEndDateInput.max = maxStr;
+                populateYearSelector();
+                domElements.reportStartDateInput.value = minStr;
+                domElements.reportEndDateInput.value = maxStr;
+                calculateAndSetTotalHours();
+            } else {
+                resetAll();
+                showMessage('Não foi possível encontrar datas válidas na coluna selecionada.', 'warning');
             }
         }
-    });
 
-    // **DIAGNÓSTICO FINAL**
-    console.log("📊 Anos encontrados nos dados:", Array.from(yearsFound).sort());
-    console.log("📅 Data MÍNIMA:", minDate);
-    console.log("📅 Data MÁXIMA:", maxDate);
-
-    if (minDate && maxDate) {
-        globalMinDate = minDate;
-        globalMaxDate = maxDate;
-        
-        const minStr = toYYYYMMDD(minDate);
-        const maxStr = toYYYYMMDD(maxDate);
-        
-        domElements.reportStartDateInput.min = minStr;
-        domElements.reportStartDateInput.max = maxStr;
-        domElements.reportEndDateInput.min = minStr;
-        domElements.reportEndDateInput.max = maxStr;
-        
-        populateYearSelector();
-        
-        // Define os valores iniciais dos inputs
-        domElements.reportStartDateInput.value = minStr;
-        domElements.reportEndDateInput.value = maxStr;
-        
-        calculateAndSetTotalHours();
-    } else {
-        resetAll();
-        showMessage('Não foi possível encontrar datas válidas. Verifique o formato DD/MM/AAAA.', 'warning');
-    }
-}
         function populateSelectors(headers) {
             const selectors = document.querySelectorAll('.config-select');
             selectors.forEach(sel => sel.innerHTML = '<option value="">-- Selecione a Coluna --</option>');
@@ -1155,7 +935,7 @@ const yearsFound = new Set();
                 'downtime-column': ['hora total', 'duracao', 'tempo parada', 'downtime', 'horas', 'total_horas'],
                 'service-order-column': ['ordem', 'os', 'service order', 'ordem_servico', 'numero_ordem'],
                 'order-title-column': ['titulo', 'title', 'descricao ordem', 'motivo', 'observacao'],
-                'start-date-column': ['dt. original', 'dt original', 'dt. par. real ini', 'data inicio', 'data abertura', 'start date', 'data_inicio', 'data'],
+                'start-date-column': ['dt. par. real ini', 'data inicio', 'data abertura', 'start date', 'data_inicio', 'data'],
                 'start-time-column': ['hr. par. real ini', 'hora inicio', 'hora abertura', 'start time', 'hora_inicio'],
                 'cost-center-column': ['desc. c.custo', 'desc c.custo', 'desc c custo', 'centro de custo', 'linha', 'linha de producao'],
                 'solution-details-column': ['insumos', 'detalhe servico', 'acao executada', 'detalhes da solucao', 'servico executado']
@@ -3217,11 +2997,10 @@ async function getChatbotResponse(question) {
                     try {
                         hideMessage();
                         const data = new Uint8Array(e.target.result);
-                        const workbook = XLSX.read(data, { type: 'array', cellDates: false });
+                        const workbook = XLSX.read(data, { type: 'array', cellDates: true });
                         const sheetName = workbook.SheetNames[0];
                         const worksheet = workbook.Sheets[sheetName];
-                        // Usar raw: true para manter objetos Date nativos, facilitando o processamento
-                        jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false, defval: "" });
+                        jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false, dateNF: 'dd/mm/yyyy' });
                         if (jsonData.length === 0) throw new Error("A planilha parece estar vazia.");
                         const headers = Object.keys(jsonData[0]);
                         populateSelectors(headers);
@@ -3371,88 +3150,71 @@ async function getChatbotResponse(question) {
             });
         }
 
-async function loadDataFromGoogleDrive() {
-    const sheetID = "10L3oH3z2kV2z5ilfZmprknokAR4NwszvGeGG7bfDxls"; 
-    const sheetGID = "179231506"; 
-    const timestamp = new Date().getTime();
-    const googleSheetUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv&gid=${sheetGID}&t=${timestamp}`;
-    try {
-        domElements.fileNameDisplay.textContent = "Conectando ao Google Drive...";
-        
-        const response = await fetch(googleSheetUrl);
-        
-        if (!response.ok) {
-            throw new Error(`Erro de conexão (${response.status}). Verifique se a planilha está como 'Qualquer pessoa com o link'.`);
-        }
+// ... (todo o código anterior permanece igual até chegar aqui)
 
-        const data = await response.arrayBuffer();
-        
-        let workbook;
-        try {
-            workbook = XLSX.read(data, { type: 'array', cellDates: false, raw: false });
-        } catch (readError) {
-            throw new Error("O Google bloqueou o acesso. Certeza que você colocou 'Qualquer pessoa com o link' no botão Compartilhar?");
-        }
-
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        
-        // **MUDANÇA AQUI: raw: false para pegar texto puro**
-        jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false, defval: "" });
-
-        if (!jsonData || jsonData.length === 0) throw new Error("A planilha foi baixada mas parece estar vazia.");
-
-        // **DIAGNÓSTICO COMPLETO**
-        console.log("=== DIAGNÓSTICO COMPLETO ===");
-        console.log("📋 TODAS as colunas:", Object.keys(jsonData[0]));
-        console.log("📄 Primeira linha completa:", jsonData[0]);
-        
-        // Procura coluna de data
-        const allColumns = Object.keys(jsonData[0]);
-        const dateColumn = allColumns.find(col => 
-            col.toLowerCase().includes('data') || 
-            col.toLowerCase().includes('dt')
-        );
-        
-        if (dateColumn) {
-            console.log("✅ Coluna de data encontrada:", dateColumn);
-            console.log("📌 Tipo:", typeof jsonData[0][dateColumn]);
-            console.log("📌 Valor BRUTO:", jsonData[0][dateColumn]);
+        // FUNÇÃO NOVA: Carregar dados direto do Google Sheets
+        async function loadDataFromGoogleDrive() {
+            // SEU ID REAL (Extraído do link de edição)
+            const sheetID = "10L3oH3z2kV2z5ilfZmprknokAR4NwszvGeGG7bfDxls"; 
             
-            // Testa conversão
-            const testDate = combineDateAndTime(jsonData[0][dateColumn], null);
-            if (testDate) {
-                console.log("✅ Data convertida:", testDate);
-                console.log("📅 Ano:", testDate.getUTCFullYear());
-                console.log("📅 Mês:", testDate.getUTCMonth() + 1);
-                console.log("📅 Dia:", testDate.getUTCDate());
-            } else {
-                console.error("❌ ERRO ao converter data!");
+            // O ID DA ABA (O número que vem depois de 'gid=' no seu link original)
+            const sheetGID = "179231506"; 
+
+            // Monta o link especial da API de Visualização do Google (GVIZ)
+            // Esse link força o Google a entregar um CSV limpo, sem HTML em volta
+            const googleSheetUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv&gid=${sheetGID}`;
+
+            try {
+                domElements.fileNameDisplay.textContent = "Conectando ao Google Drive...";
+                
+                const response = await fetch(googleSheetUrl);
+                
+                // Se o status não for 200 OK, deu erro na conexão
+                if (!response.ok) {
+                    throw new Error(`Erro de conexão (${response.status}). Verifique se a planilha está como 'Qualquer pessoa com o link'.`);
+                }
+
+                const data = await response.arrayBuffer();
+                
+                // Tenta ler o arquivo
+                // Se a planilha não estiver pública, o Google manda uma página de Login (HTML)
+                // e é aqui que dava o erro "Invalid HTML".
+                let workbook;
+                try {
+                    workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                } catch (readError) {
+                    throw new Error("O Google bloqueou o acesso. Certeza que você colocou 'Qualquer pessoa com o link' no botão Compartilhar?");
+                }
+
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                
+                jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false, dateNF: 'dd/mm/yyyy' });
+
+                if (!jsonData || jsonData.length === 0) throw new Error("A planilha foi baixada mas parece estar vazia.");
+
+                // Sucesso: Configura a tela
+                const headers = Object.keys(jsonData[0]);
+                populateSelectors(headers);
+                updateReportDateRange();
+                populateProductionLineFilter();
+                
+                domElements.fileNameDisplay.textContent = "Dados carregados via Nuvem (Google)";
+                domElements.fileNameDisplay.classList.add("text-green-600", "font-bold");
+                domElements.analysisSection.classList.remove('hidden');
+                domElements.analyzerNoData.classList.add('hidden');
+                domElements.resultsSection.classList.add('hidden');
+                switchPage('analyzer-page');
+
+                // Se quiser rodar a análise direto, descomente a linha abaixo:
+                // runAnalysis(); 
+
+            } catch (err) {
+                console.error("Erro Google Drive:", err);
+                showMessage("Falha no carregamento automático: " + err.message);
+                domElements.fileNameDisplay.textContent = "Erro ao carregar da nuvem.";
             }
-        } else {
-            console.error("❌ NENHUMA coluna de data encontrada!");
         }
-        console.log("===========================");
-
-        // Sucesso: Configura a tela
-        const headers = Object.keys(jsonData[0]);
-        populateSelectors(headers);
-        updateReportDateRange();
-        populateProductionLineFilter();
-        
-        domElements.fileNameDisplay.textContent = "Dados carregados via Nuvem (Google)";
-        domElements.fileNameDisplay.classList.add("text-green-600", "font-bold");
-        domElements.analysisSection.classList.remove('hidden');
-        domElements.analyzerNoData.classList.add('hidden');
-        domElements.resultsSection.classList.add('hidden');
-        switchPage('analyzer-page');
-
-    } catch (err) {
-        console.error("Erro Google Drive:", err);
-        showMessage("Falha no carregamento automático: " + err.message);
-        domElements.fileNameDisplay.textContent = "Erro ao carregar da nuvem.";
-    }
-}
 
         document.addEventListener('DOMContentLoaded', () => {
             // ... (Mantenha as definições de domElements aqui, igual já estava)
