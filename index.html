@@ -805,7 +805,6 @@ function populateMonthSelector() {
 
     const months = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
     
-    // **CORREÇÃO: Obter limites baseados nos dados globais**
     let minMonthIndex = 0;
     let maxMonthIndex = 11;
 
@@ -886,26 +885,34 @@ function handleDateFilterChange() {
         domElements.reportStartDateInput.value = start;
         domElements.reportEndDateInput.value = end;
     } else if (month !== "" && year !== "") {
-        // **--- CORREÇÃO AQUI ---**
         const yearInt = parseInt(year);
         const monthInt = parseInt(month);
 
         // Primeiro dia do mês
         let startDate = new Date(Date.UTC(yearInt, monthInt, 1));
         
-        // Último dia matemático do mês (ex: 31/01)
+        // Último dia MATEMÁTICO do mês (ex: 31/01/2026)
         let endDate = new Date(Date.UTC(yearInt, monthInt + 1, 0));
 
-        // **Se tivermos dados globais carregados**
+        // **VALIDAÇÃO CRÍTICA: Respeita os limites REAIS dos dados**
         if (globalMinDate && globalMaxDate) {
-            // Se a data de início calculada for anterior ao início real dos dados, ajusta
+            // Se o início do mês é antes dos dados, ajusta
             if (startDate < globalMinDate) {
                 startDate = new Date(globalMinDate);
             }
-            // **Se o final do mês calculado for posterior ao fim real dos dados, trava na data real (ex: 08/01)**
+            
+            // **CRÍTICO: Se o fim do mês é DEPOIS dos dados, trava na data real**
             if (endDate > globalMaxDate) {
                 endDate = new Date(globalMaxDate);
             }
+            
+            // **SEGURANÇA EXTRA: Se startDate ficou maior que endDate, inverte**
+            if (startDate > endDate) {
+                startDate = new Date(globalMaxDate);
+                endDate = new Date(globalMaxDate);
+            }
+            
+            console.log(`📅 Janeiro/2026: ${toYYYYMMDD(startDate)} até ${toYYYYMMDD(endDate)}`);
         }
 
         domElements.reportStartDateInput.value = toYYYYMMDD(startDate);
@@ -938,6 +945,30 @@ function handleDateFilterChange() {
     }
     if (globalMaxDate && domElements.reportEndDateInput.value && new Date(domElements.reportEndDateInput.value) > globalMaxDate) {
         domElements.reportEndDateInput.value = toYYYYMMDD(globalMaxDate);
+    }
+
+// Trava de segurança final
+    if (globalMinDate && domElements.reportStartDateInput.value) {
+        const inputStart = new Date(domElements.reportStartDateInput.value + 'T00:00:00Z');
+        if (inputStart < globalMinDate) {
+            domElements.reportStartDateInput.value = toYYYYMMDD(globalMinDate);
+        }
+    }
+    
+    if (globalMaxDate && domElements.reportEndDateInput.value) {
+        const inputEnd = new Date(domElements.reportEndDateInput.value + 'T23:59:59Z');
+        if (inputEnd > globalMaxDate) {
+            domElements.reportEndDateInput.value = toYYYYMMDD(globalMaxDate);
+        }
+    }
+    
+    // **VALIDAÇÃO CRÍTICA: Garante que startDate <= endDate**
+    const finalStart = domElements.reportStartDateInput.value;
+    const finalEnd = domElements.reportEndDateInput.value;
+    
+    if (finalStart && finalEnd && finalStart > finalEnd) {
+        console.warn('⚠️ Data de início maior que fim! Corrigindo...');
+        domElements.reportEndDateInput.value = finalStart; // Ajusta para o mesmo dia
     }
 
     calculateAndSetTotalHours();
