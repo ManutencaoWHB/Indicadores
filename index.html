@@ -739,7 +739,30 @@ function combineDateAndTime(dateVal, timeVal) {
         }
     }
 
+    // **VALIDAÇÃO FINAL**
+    const testDate = new Date(Date.UTC(year, month, day));
+    if (isNaN(testDate.getTime())) return null;
+    
+    // **VALIDAÇÃO DE SANIDADE: Rejeita datas absurdas**
+    const testYear = testDate.getUTCFullYear();
+    if (testYear < 2020 || testYear > 2027) {
+        console.warn(`⚠️ Data rejeitada (ano ${testYear}):`, {
+            input: dateVal,
+            parsed: testDate
+        });
+        return null; // Ignora essa data
+    }
+
+    // **ADICIONA HORÁRIO SE FORNECIDO**
+    if (timeVal != null) {
+        // ... (código de hora) ...
+    }
+
     return testDate;
+}
+
+
+
 }
         function calculateAndSetTotalHours() {
             const startDateVal = domElements.reportStartDateInput.value;
@@ -1055,26 +1078,39 @@ function updateReportDateRange() {
     let maxDate = null;
     const yearsFound = new Set(); // Para rastrear quais anos aparecem
 
-    jsonData.forEach(row => {
-        // Usa a nova função corrigida
+const yearsFound = new Set();
+
+    jsonData.forEach((row, index) => {
         const currentDate = combineDateAndTime(row[startDateCol], row[startTimeCol]);
         
         if (currentDate && !isNaN(currentDate.getTime())) {
-            // Valida apenas anos razoáveis (2000-2100)
             const y = currentDate.getUTCFullYear();
+            yearsFound.add(y);
+            
+            // **DIAGNÓSTICO: Mostra datas de 2027+ com detalhes da linha**
+            if (y >= 2027) {
+                console.warn(`⚠️ LINHA ${index + 2}: Data suspeita encontrada!`, {
+                    valorOriginalData: row[startDateCol],
+                    valorOriginalHora: row[startTimeCol],
+                    dataConvertida: currentDate,
+                    ano: y,
+                    mes: currentDate.getUTCMonth() + 1,
+                    dia: currentDate.getUTCDate()
+                });
+            }
+            
+            // Valida apenas anos razoáveis (2000-2100)
             if (y >= 2000 && y <= 2100) {
                 if (!minDate || currentDate < minDate) minDate = currentDate;
                 if (!maxDate || currentDate > maxDate) maxDate = currentDate;
-            } else {
-                console.warn(`Data ignorada (ano ${y} fora do intervalo):`, currentDate);
             }
         }
     });
 
-            // **DIAGNÓSTICO FINAL**
-        console.log("📊 Anos encontrados nos dados:", Array.from(yearsFound).sort());
-        console.log("📅 Data MÍNIMA:", minDate);
-        console.log("📅 Data MÁXIMA:", maxDate);
+    // **DIAGNÓSTICO FINAL**
+    console.log("📊 Anos encontrados nos dados:", Array.from(yearsFound).sort());
+    console.log("📅 Data MÍNIMA:", minDate);
+    console.log("📅 Data MÁXIMA:", maxDate);
 
     if (minDate && maxDate) {
         globalMinDate = minDate;
