@@ -3374,8 +3374,8 @@ async function getChatbotResponse(question) {
 async function loadDataFromGoogleDrive() {
     const sheetID = "10L3oH3z2kV2z5ilfZmprknokAR4NwszvGeGG7bfDxls"; 
     const sheetGID = "179231506"; 
-    const googleSheetUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv&gid=${sheetGID}`;
-
+    const timestamp = new Date().getTime();
+    const googleSheetUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv&gid=${sheetGID}&t=${timestamp}`;
     try {
         domElements.fileNameDisplay.textContent = "Conectando ao Google Drive...";
         
