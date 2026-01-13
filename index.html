@@ -756,8 +756,6 @@
             if (!year || !availableDataMap[year]) return;
 
             const monthsLabels = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-            
-            // Converte o Set de meses em array e ordena
             const months = Array.from(availableDataMap[year]).sort((a, b) => a - b);
             
             months.forEach(monthIdx => {
@@ -806,6 +804,7 @@
             const startDateCol = domElements.startDateColumnSelect.value;
 
             if (!year) {
+                // Se limpar o ano, volta para o range total da planilha
                 if (globalMinDate && globalMaxDate) {
                     domElements.reportStartDateInput.value = toYYYYMMDD(globalMinDate);
                     domElements.reportEndDateInput.value = toYYYYMMDD(globalMaxDate);
@@ -814,10 +813,10 @@
                 return;
             }
 
-            // Filtrar dados para encontrar os limites reais do período selecionado
             let periodMin = null;
             let periodMax = null;
 
+            // Procura nos dados o início e fim REAIS para o que foi selecionado
             jsonData.forEach(row => {
                 const d = combineDateAndTime(row[startDateCol], row[domElements.startTimeColumnSelect.value]);
                 if (!d) return;
@@ -825,7 +824,6 @@
                 const dYear = d.getUTCFullYear();
                 const dMonth = d.getUTCMonth();
 
-                // Verifica se a linha pertence ao ano/mês selecionado
                 const matchYear = dYear == year;
                 const matchMonth = (month === "") || (dMonth == month);
 
@@ -871,8 +869,7 @@
         }
        
         
-        // Adicione esta variável global no topo do seu <script>
-        let availableDataMap = {}; 
+        let availableDataMap = {}; // Armazena a estrutura de anos e meses com dados
 
         function updateReportDateRange() {
             const startDateCol = domElements.startDateColumnSelect.value;
@@ -887,9 +884,11 @@
             jsonData.forEach(row => {
                 const currentDate = combineDateAndTime(row[startDateCol], row[startTimeCol]);
                 if (currentDate && !isNaN(currentDate.getTime())) {
+                    // Define o limite absoluto dos dados
                     if (!minDate || currentDate < minDate) minDate = currentDate;
                     if (!maxDate || currentDate > maxDate) maxDate = currentDate;
 
+                    // Mapeia anos e meses disponíveis
                     const year = currentDate.getUTCFullYear();
                     const month = currentDate.getUTCMonth();
 
@@ -902,17 +901,19 @@
                 globalMinDate = minDate;
                 globalMaxDate = maxDate;
                 
-                // Configura os limites dos inputs de data
+                // Configura os limites físicos dos campos de data no navegador
                 domElements.reportStartDateInput.min = toYYYYMMDD(minDate);
                 domElements.reportStartDateInput.max = toYYYYMMDD(maxDate);
                 domElements.reportEndDateInput.min = toYYYYMMDD(minDate);
                 domElements.reportEndDateInput.max = toYYYYMMDD(maxDate);
 
+                // Preenche os seletores dinamicamente
                 populateYearSelector();
                 
-                // Define valor inicial para o período total disponível
+                // Define as datas iniciais do relatório exatamente como o início e fim dos dados
                 domElements.reportStartDateInput.value = toYYYYMMDD(minDate);
                 domElements.reportEndDateInput.value = toYYYYMMDD(maxDate);
+                
                 calculateAndSetTotalHours();
             }
         }
