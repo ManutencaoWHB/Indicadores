@@ -715,20 +715,18 @@
 
             if (startDateVal && endDateVal) {
                 const startDate = new Date(startDateVal + 'T00:00:00Z');
-                const endDate = new Date(endDateVal + 'T00:00:00Z');
+                const endDate = new Date(endDateVal + 'T23:59:59Z'); // Considera até o fim do dia
+
                 if (endDate < startDate) {
-                    showMessage('A Data Final não pode ser anterior à Data Inicial.', 'warning');
-                    domElements.totalHoursInput.value = '';
+                    domElements.totalHoursInput.value = '0';
                     return;
                 }
-                const nextDayAfterEnd = new Date(endDate);
-                nextDayAfterEnd.setUTCDate(nextDayAfterEnd.getUTCDate() + 1);
-                const diffMilliseconds = nextDayAfterEnd.getTime() - startDate.getTime();
+
+                const diffMilliseconds = endDate.getTime() - startDate.getTime();
+                // Adicionamos 1 segundo para arredondar o dia completo se necessário
                 const totalHours = diffMilliseconds / (1000 * 60 * 60);
-                domElements.totalHoursInput.value = totalHours.toFixed(0);
-                if(endDate >= startDate) hideMessage();
-            } else {
-                domElements.totalHoursInput.value = '';
+                domElements.totalHoursInput.value = Math.max(1, Math.round(totalHours));
+                hideMessage();
             }
         }
         
@@ -742,38 +740,32 @@
 
         function populateYearSelector() {
             domElements.yearSelect.innerHTML = '<option value="">Ano (Todos)</option>';
-            if (!globalMinDate || !globalMaxDate) return;
-            const startYear = globalMinDate.getUTCFullYear();
-            const endYear = globalMaxDate.getUTCFullYear();
-            for (let year = startYear; year <= endYear; year++) {
+            const years = Object.keys(availableDataMap).sort((a, b) => a - b);
+            
+            years.forEach(year => {
                 const option = document.createElement('option');
                 option.value = year;
                 option.textContent = year;
                 domElements.yearSelect.appendChild(option);
-            }
-            if (domElements.yearSelect.value) {
-                populateMonthSelector();
-                populateWeekSelector();
-            }
+            });
         }
 
         function populateMonthSelector() {
             domElements.monthSelect.innerHTML = '<option value="">Mês (Todos)</option>';
-            const year = parseInt(domElements.yearSelect.value);
-            if (isNaN(year)) {
-                domElements.weekSelect.innerHTML = '<option value="">Semana (Todas)</option>';
-                return; 
-            }
-            const months = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-            months.forEach((month, index) => {
+            const year = domElements.yearSelect.value;
+            if (!year || !availableDataMap[year]) return;
+
+            const monthsLabels = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+            
+            // Converte o Set de meses em array e ordena
+            const months = Array.from(availableDataMap[year]).sort((a, b) => a - b);
+            
+            months.forEach(monthIdx => {
                 const option = document.createElement('option');
-                option.value = index;
-                option.textContent = month;
+                option.value = monthIdx;
+                option.textContent = monthsLabels[monthIdx];
                 domElements.monthSelect.appendChild(option);
             });
-            if (domElements.monthSelect.value) {
-                populateWeekSelector();
-            }
         }
 
         function populateWeekSelector() {
@@ -811,35 +803,41 @@
         function handleDateFilterChange() {
             const year = domElements.yearSelect.value;
             const month = domElements.monthSelect.value;
-            const week = domElements.weekSelect.value;
+            const startDateCol = domElements.startDateColumnSelect.value;
 
-            domElements.reportStartDateInput.value = '';
-            domElements.reportEndDateInput.value = '';
-
-            if (week) {
-                const [start, end] = week.split('|');
-                domElements.reportStartDateInput.value = start;
-                domElements.reportEndDateInput.value = end;
-            } else if (month !== "" && year !== "") {
-                const startDate = new Date(Date.UTC(parseInt(year), parseInt(month), 1));
-                const endDate = new Date(Date.UTC(parseInt(year), parseInt(month) + 1, 0));
-                domElements.reportStartDateInput.value = toYYYYMMDD(startDate);
-                domElements.reportEndDateInput.value = toYYYYMMDD(endDate);
-            } else if (year !== "") {
-                domElements.reportStartDateInput.value = `${year}-01-01`;
-                domElements.reportEndDateInput.value = `${year}-12-31`;
-            } else { 
+            if (!year) {
                 if (globalMinDate && globalMaxDate) {
                     domElements.reportStartDateInput.value = toYYYYMMDD(globalMinDate);
                     domElements.reportEndDateInput.value = toYYYYMMDD(globalMaxDate);
                 }
+                calculateAndSetTotalHours();
+                return;
             }
 
-            if (globalMinDate && domElements.reportStartDateInput.value && new Date(domElements.reportStartDateInput.value) < globalMinDate) {
-                domElements.reportStartDateInput.value = toYYYYMMDD(globalMinDate);
-            }
-            if (globalMaxDate && domElements.reportEndDateInput.value && new Date(domElements.reportEndDateInput.value) > globalMaxDate) {
-                domElements.reportEndDateInput.value = toYYYYMMDD(globalMaxDate);
+            // Filtrar dados para encontrar os limites reais do período selecionado
+            let periodMin = null;
+            let periodMax = null;
+
+            jsonData.forEach(row => {
+                const d = combineDateAndTime(row[startDateCol], row[domElements.startTimeColumnSelect.value]);
+                if (!d) return;
+
+                const dYear = d.getUTCFullYear();
+                const dMonth = d.getUTCMonth();
+
+                // Verifica se a linha pertence ao ano/mês selecionado
+                const matchYear = dYear == year;
+                const matchMonth = (month === "") || (dMonth == month);
+
+                if (matchYear && matchMonth) {
+                    if (!periodMin || d < periodMin) periodMin = d;
+                    if (!periodMax || d > periodMax) periodMax = d;
+                }
+            });
+
+            if (periodMin && periodMax) {
+                domElements.reportStartDateInput.value = toYYYYMMDD(periodMin);
+                domElements.reportEndDateInput.value = toYYYYMMDD(periodMax);
             }
 
             calculateAndSetTotalHours();
@@ -871,48 +869,51 @@
                 filterSelect.appendChild(option);
             });
         }
+       
         
+        // Adicione esta variável global no topo do seu <script>
+        let availableDataMap = {}; 
+
         function updateReportDateRange() {
             const startDateCol = domElements.startDateColumnSelect.value;
             const startTimeCol = domElements.startTimeColumnSelect.value;
-            const resetAll = () => {
-                globalMinDate = null;
-                globalMaxDate = null;
-                ['reportStartDateInput', 'reportEndDateInput'].forEach(id => {
-                    domElements[id].min = ''; domElements[id].max = ''; domElements[id].value = '';
-                });
-                domElements.yearSelect.innerHTML = '<option value="">Ano (Todos)</option>';
-                domElements.monthSelect.innerHTML = '<option value="">Mês (Todos)</option>';
-                domElements.weekSelect.innerHTML = '<option value="">Semana (Todas)</option>';
-                populateProductionLineFilter();
-            };
-            if (!startDateCol || !jsonData) {
-                resetAll(); return;
-            }
-            let minDate = null; let maxDate = null;
+            
+            if (!startDateCol || !jsonData) return;
+
+            availableDataMap = {};
+            let minDate = null;
+            let maxDate = null;
+
             jsonData.forEach(row => {
                 const currentDate = combineDateAndTime(row[startDateCol], row[startTimeCol]);
                 if (currentDate && !isNaN(currentDate.getTime())) {
                     if (!minDate || currentDate < minDate) minDate = currentDate;
                     if (!maxDate || currentDate > maxDate) maxDate = currentDate;
+
+                    const year = currentDate.getUTCFullYear();
+                    const month = currentDate.getUTCMonth();
+
+                    if (!availableDataMap[year]) availableDataMap[year] = new Set();
+                    availableDataMap[year].add(month);
                 }
             });
+
             if (minDate && maxDate) {
                 globalMinDate = minDate;
                 globalMaxDate = maxDate;
-                const minStr = toYYYYMMDD(minDate);
-                const maxStr = toYYYYMMDD(maxDate);
-                domElements.reportStartDateInput.min = minStr;
-                domElements.reportStartDateInput.max = maxStr;
-                domElements.reportEndDateInput.min = minStr;
-                domElements.reportEndDateInput.max = maxStr;
+                
+                // Configura os limites dos inputs de data
+                domElements.reportStartDateInput.min = toYYYYMMDD(minDate);
+                domElements.reportStartDateInput.max = toYYYYMMDD(maxDate);
+                domElements.reportEndDateInput.min = toYYYYMMDD(minDate);
+                domElements.reportEndDateInput.max = toYYYYMMDD(maxDate);
+
                 populateYearSelector();
-                domElements.reportStartDateInput.value = minStr;
-                domElements.reportEndDateInput.value = maxStr;
+                
+                // Define valor inicial para o período total disponível
+                domElements.reportStartDateInput.value = toYYYYMMDD(minDate);
+                domElements.reportEndDateInput.value = toYYYYMMDD(maxDate);
                 calculateAndSetTotalHours();
-            } else {
-                resetAll();
-                showMessage('Não foi possível encontrar datas válidas na coluna selecionada.', 'warning');
             }
         }
 
