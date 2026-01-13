@@ -871,52 +871,51 @@
         
         let availableDataMap = {}; // Armazena a estrutura de anos e meses com dados
 
-        function updateReportDateRange() {
-            const startDateCol = domElements.startDateColumnSelect.value;
-            const startTimeCol = domElements.startTimeColumnSelect.value;
-            
-            if (!startDateCol || !jsonData) return;
+function updateReportDateRange() {
+    const startDateCol = domElements.startDateColumnSelect.value;
+    const startTimeCol = domElements.startTimeColumnSelect.value;
+    
+    if (!startDateCol || !jsonData || jsonData.length === 0) return;
 
-            availableDataMap = {};
-            let minDate = null;
-            let maxDate = null;
+    availableDataMap = {}; // Limpa o mapa anterior
+    let minDate = null;
+    let maxDate = null;
 
-            jsonData.forEach(row => {
-                const currentDate = combineDateAndTime(row[startDateCol], row[startTimeCol]);
-                if (currentDate && !isNaN(currentDate.getTime())) {
-                    // Define o limite absoluto dos dados
-                    if (!minDate || currentDate < minDate) minDate = currentDate;
-                    if (!maxDate || currentDate > maxDate) maxDate = currentDate;
+    jsonData.forEach(row => {
+        const currentDate = combineDateAndTime(row[startDateCol], row[startTimeCol]);
+        if (currentDate && !isNaN(currentDate.getTime())) {
+            if (!minDate || currentDate < minDate) minDate = currentDate;
+            if (!maxDate || currentDate > maxDate) maxDate = currentDate;
 
-                    // Mapeia anos e meses disponíveis
-                    const year = currentDate.getUTCFullYear();
-                    const month = currentDate.getUTCMonth();
+            const year = currentDate.getUTCFullYear();
+            const month = currentDate.getUTCMonth();
 
-                    if (!availableDataMap[year]) availableDataMap[year] = new Set();
-                    availableDataMap[year].add(month);
-                }
-            });
-
-            if (minDate && maxDate) {
-                globalMinDate = minDate;
-                globalMaxDate = maxDate;
-                
-                // Configura os limites físicos dos campos de data no navegador
-                domElements.reportStartDateInput.min = toYYYYMMDD(minDate);
-                domElements.reportStartDateInput.max = toYYYYMMDD(maxDate);
-                domElements.reportEndDateInput.min = toYYYYMMDD(minDate);
-                domElements.reportEndDateInput.max = toYYYYMMDD(maxDate);
-
-                // Preenche os seletores dinamicamente
-                populateYearSelector();
-                
-                // Define as datas iniciais do relatório exatamente como o início e fim dos dados
-                domElements.reportStartDateInput.value = toYYYYMMDD(minDate);
-                domElements.reportEndDateInput.value = toYYYYMMDD(maxDate);
-                
-                calculateAndSetTotalHours();
-            }
+            if (!availableDataMap[year]) availableDataMap[year] = new Set();
+            availableDataMap[year].add(month);
         }
+    });
+
+    if (minDate && maxDate) {
+        globalMinDate = minDate;
+        globalMaxDate = maxDate;
+        
+        const minStr = toYYYYMMDD(minDate);
+        const maxStr = toYYYYMMDD(maxDate);
+
+        // FORÇA os limites do calendário
+        domElements.reportStartDateInput.min = minStr;
+        domElements.reportStartDateInput.max = maxStr;
+        domElements.reportEndDateInput.min = minStr;
+        domElements.reportEndDateInput.max = maxStr;
+
+        // FORÇA os valores iniciais para o que tem na planilha
+        domElements.reportStartDateInput.value = minStr;
+        domElements.reportEndDateInput.value = maxStr;
+
+        populateYearSelector();
+        calculateAndSetTotalHours();
+    }
+}
 
         function populateSelectors(headers) {
             const selectors = document.querySelectorAll('.config-select');
