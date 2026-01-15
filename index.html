@@ -3152,13 +3152,7 @@ async function getChatbotResponse(question) {
 
         // FUNÇÃO PARA CARREGAR DADOS DIRETO DO GOOGLE SHEETS
         async function loadDataFromGoogleDrive() {
-            // 1. COLE O SEU LINK DA PLANILHA AQUI DENTRO DAS ASPAS:
             const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5rL4yBMA94IRrsgNRqdLjqBZDSKftx_RjIDMrcTHU-bZLDH1ixu_Yc7i-c-ecbQ/pub?output=csv"; 
-
-            if (googleSheetUrl === "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5rL4yBMA94IRrsgNRqdLjqBZDSKftx_RjIDMrcTHU-bZLDH1ixu_Yc7i-c-ecbQ/pub?output=csv" || !googleSheetUrl) {
-                console.log("Link do Google Sheets não configurado.");
-                return;
-            }
 
             try {
                 domElements.fileNameDisplay.textContent = "Buscando dados na nuvem...";
@@ -3166,16 +3160,18 @@ async function getChatbotResponse(question) {
                 const response = await fetch(googleSheetUrl);
                 if (!response.ok) throw new Error("Erro ao acessar a planilha");
 
-                const data = await response.arrayBuffer();
-                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                // Mudamos para text() para garantir a leitura do CSV
+                const csvText = await response.text();
+                const workbook = XLSX.read(csvText, { type: 'string', cellDates: true });
+                
                 const sheetName = workbook.SheetNames[0]; 
                 const worksheet = workbook.Sheets[sheetName];
                 
                 jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false, dateNF: 'dd/mm/yyyy' });
+                console.log("Dados carregados:", jsonData); // Isso ajuda a ver se os dados chegaram no F12
 
                 if (jsonData.length === 0) throw new Error("A planilha está vazia.");
 
-                // Mapeia as colunas automaticamente
                 const headers = Object.keys(jsonData[0]);
                 populateSelectors(headers);
                 updateReportDateRange();
@@ -3185,8 +3181,8 @@ async function getChatbotResponse(question) {
                 domElements.analysisSection.classList.remove('hidden');
                 domElements.analyzerNoData.classList.add('hidden');
                 
-                // Opcional: Descomente a linha abaixo se quiser que ele já calcule tudo ao abrir
-                // runAnalysis(); 
+                // AUTO-ANÁLISE: Se quiser que ele já calcule tudo sozinho ao abrir:
+                setTimeout(() => { runAnalysis(); }, 500); 
 
             } catch (err) {
                 console.error(err);
