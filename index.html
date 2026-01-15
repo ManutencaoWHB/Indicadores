@@ -930,42 +930,42 @@
 
         function autoMapColumns(headers) {
             const columnMappings = {
-                'machine-column': ['bem', 'ativo', 'maquina', 'equipamento', 'codigo'],
-                'asset-name-column': ['nome do bem', 'nome', 'descricao', 'description', 'nome_bem'],
-                'downtime-column': ['hora total', 'duracao', 'tempo parada', 'downtime', 'horas', 'total_horas'],
-                'service-order-column': ['ordem', 'os', 'service order', 'ordem_servico', 'numero_ordem'],
-                'order-title-column': ['titulo', 'title', 'descricao ordem', 'motivo', 'observacao'],
-                'start-date-column': ['dt. par. real ini', 'data inicio', 'data abertura', 'start date', 'data_inicio', 'data'],
-                'start-time-column': ['hr. par. real ini', 'hora inicio', 'hora abertura', 'start time', 'hora_inicio'],
-                'cost-center-column': ['desc. c.custo', 'desc c.custo', 'desc c custo', 'centro de custo', 'linha', 'linha de producao'],
-                'solution-details-column': ['insumos', 'detalhe servico', 'acao executada', 'detalhes da solucao', 'servico executado']
+                'machine-column': ['Bem', 'ativo', 'maquina', 'equipamento', 'codigo'],
+                'asset-name-column': ['Nome do Bem', 'nome', 'descricao', 'description'],
+                'downtime-column': ['Hora Total', 'hora total', 'duracao', 'tempo parada'],
+                'service-order-column': ['Ordem', 'os', 'ordem_servico', 'numero_ordem'],
+                'order-title-column': ['Titulo', 'titulo', 'descricao ordem', 'motivo'],
+                'start-date-column': ['Dt. Par. Real Ini.', 'data inicio', 'data abertura'],
+                'start-time-column': ['Hr. Par. Real Ini.', 'hora inicio', 'hora abertura'],
+                'cost-center-column': ['Desc. C.Custo', 'centro de custo', 'linha', 'ccusto'],
+                'solution-details-column': ['Solução', 'detalhes da solucao', 'servico executado']
             };
-            const normalizeString = (str) => str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s\.]/g, '').trim();
+
+            const normalizeString = (str) => str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
             Object.keys(columnMappings).forEach(selectId => {
                 const selectElement = document.getElementById(selectId);
                 if (!selectElement) return;
+
                 const patterns = columnMappings[selectId];
                 let matchedHeader = null;
+
+                // Tenta encontrar o nome exato primeiro
                 for (const header of headers) {
-                    const normalizedHeader = normalizeString(header);
-                    if (patterns.some(p => normalizedHeader === normalizeString(p))) { matchedHeader = header; break; }
-                }
-                if (!matchedHeader) {
-                    for (const header of headers) {
-                        const normalizedHeader = normalizeString(header);
-                        if (patterns.some(p => normalizedHeader.includes(normalizeString(p)))) { matchedHeader = header; break; }
+                    const normHeader = normalizeString(header);
+                    if (patterns.some(p => normHeader === normalizeString(p))) {
+                        matchedHeader = header;
+                        break;
                     }
                 }
-                if (matchedHeader && selectElement) {
+
+                if (matchedHeader) {
                     selectElement.value = matchedHeader;
-                    selectElement.style.backgroundColor = '#dcfce7'; selectElement.style.borderColor = '#16a34a';
-                    setTimeout(() => { selectElement.style.backgroundColor = ''; selectElement.style.borderColor = ''; }, 3000);
+                    // Efeito visual de sucesso (opcional)
+                    selectElement.style.borderColor = '#16a34a'; 
+                    selectElement.style.backgroundColor = '#f0fdf4';
                 }
             });
-            const autoFilledFields = Array.from(document.querySelectorAll('.config-select')).filter(sel => sel.value !== '').length;
-            if (autoFilledFields > 0) {
-                showMessage(`${autoFilledFields} de 9 campos de análise principal foram preenchidos. Verifique se estão corretos.`, 'success');
-            }
         }
 
         function runAnalysis() {
@@ -3150,53 +3150,47 @@ async function getChatbotResponse(question) {
             });
         }
 
-// ... (todo o código anterior permanece igual até chegar aqui)
-
-        // FUNÇÃO NOVA: Carregar dados direto do Google Sheets
+        // FUNÇÃO PARA CARREGAR DADOS DIRETO DO GOOGLE SHEETS
         async function loadDataFromGoogleDrive() {
-            // COLE O SEU LINK DO PASSO 1 AQUI DENTRO DAS ASPAS:
-            const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTtB5HFqn9ZvEa4SAPReYcpDI5XyQSbahgWJBxNFVlYedeKvs9PnmdH9dEcPubS1EFHczPOS4cdPQE3/pub?gid=266670542&single=true&output=csv"; 
+            // 1. COLE O SEU LINK DA PLANILHA AQUI DENTRO DAS ASPAS:
+            const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5rL4yBMA94IRrsgNRqdLjqBZDSKftx_RjIDMrcTHU-bZLDH1ixu_Yc7i-c-ecbQ/pub?output=csv"; 
 
-            // Se você não colocou o link ainda, não faz nada
-            if (googleSheetUrl === "https://docs.google.com/spreadsheets/d/e/2PACX-1vTtB5HFqn9ZvEa4SAPReYcpDI5XyQSbahgWJBxNFVlYedeKvs9PnmdH9dEcPubS1EFHczPOS4cdPQE3/pub?gid=266670542&single=true&output=csv" || !googleSheetUrl) return;
+            if (googleSheetUrl === "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5rL4yBMA94IRrsgNRqdLjqBZDSKftx_RjIDMrcTHU-bZLDH1ixu_Yc7i-c-ecbQ/pub?output=csv" || !googleSheetUrl) {
+                console.log("Link do Google Sheets não configurado.");
+                return;
+            }
 
             try {
-                // Mostra mensagem de carregando
-                domElements.fileNameDisplay.textContent = "Buscando dados no Google Drive...";
+                domElements.fileNameDisplay.textContent = "Buscando dados na nuvem...";
                 
                 const response = await fetch(googleSheetUrl);
-                
                 if (!response.ok) throw new Error("Erro ao acessar a planilha");
 
                 const data = await response.arrayBuffer();
                 const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                const sheetName = workbook.SheetNames[0]; // Pega a primeira aba
+                const sheetName = workbook.SheetNames[0]; 
                 const worksheet = workbook.Sheets[sheetName];
                 
                 jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false, dateNF: 'dd/mm/yyyy' });
 
-                if (jsonData.length === 0) throw new Error("A planilha parece estar vazia.");
+                if (jsonData.length === 0) throw new Error("A planilha está vazia.");
 
-                // Configurações automáticas (igual ao upload manual)
+                // Mapeia as colunas automaticamente
                 const headers = Object.keys(jsonData[0]);
                 populateSelectors(headers);
                 updateReportDateRange();
                 populateProductionLineFilter();
                 
-                // Muda para a tela do analisador
-                domElements.fileNameDisplay.textContent = "Dados carregados via Nuvem (Google)";
+                domElements.fileNameDisplay.textContent = "Dados carregados via Google Planilhas";
                 domElements.analysisSection.classList.remove('hidden');
                 domElements.analyzerNoData.classList.add('hidden');
-                domElements.resultsSection.classList.add('hidden');
-                switchPage('analyzer-page');
                 
-                // Opcional: Já clicar em analisar automaticamente se quiser
+                // Opcional: Descomente a linha abaixo se quiser que ele já calcule tudo ao abrir
                 // runAnalysis(); 
 
             } catch (err) {
                 console.error(err);
-                showMessage("Não foi possível carregar do Google Drive: " + err.message);
-                domElements.fileNameDisplay.textContent = "Erro no carregamento automático.";
+                showMessage("Erro ao carregar do Google: " + err.message);
             }
         }
 
