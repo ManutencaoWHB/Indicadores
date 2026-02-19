@@ -162,10 +162,6 @@
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                     Dashboard
                 </a>
-                <a href="#" id="nav-chatbot" class="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                    Chatbot da Manutenção
-                </a>
             </nav>
         </div>
         <div class="mt-auto p-4 border-t dark:border-gray-700">
@@ -731,6 +727,25 @@
                 domElements.totalHoursInput.value = '';
             }
         }
+
+        function clampReportDatesToGlobalRange() {
+            if (!globalMinDate || !globalMaxDate) return;
+            const startVal = domElements.reportStartDateInput.value;
+            const endVal = domElements.reportEndDateInput.value;
+
+            if (startVal) {
+                const startDate = new Date(startVal + 'T00:00:00Z');
+                if (startDate < globalMinDate) {
+                    domElements.reportStartDateInput.value = toYYYYMMDD(globalMinDate);
+                }
+            }
+            if (endVal) {
+                const endDate = new Date(endVal + 'T00:00:00Z');
+                if (endDate > globalMaxDate) {
+                    domElements.reportEndDateInput.value = toYYYYMMDD(globalMaxDate);
+                }
+            }
+        }
         
         const toYYYYMMDD = (date) => {
              const d = new Date(date);
@@ -835,12 +850,7 @@
                 }
             }
 
-            if (globalMinDate && domElements.reportStartDateInput.value && new Date(domElements.reportStartDateInput.value) < globalMinDate) {
-                domElements.reportStartDateInput.value = toYYYYMMDD(globalMinDate);
-            }
-            if (globalMaxDate && domElements.reportEndDateInput.value && new Date(domElements.reportEndDateInput.value) > globalMaxDate) {
-                domElements.reportEndDateInput.value = toYYYYMMDD(globalMaxDate);
-            }
+            clampReportDatesToGlobalRange();
 
             calculateAndSetTotalHours();
         }
@@ -970,6 +980,7 @@
 
         function runAnalysis() {
             hideMessage();
+            calculateAndSetTotalHours();
             if (!jsonData) return showMessage("Por favor, carregue uma planilha primeiro.");
             const config = {
                 totalHours: parseFloat(domElements.totalHoursInput.value),
@@ -1392,6 +1403,29 @@ async function analyzeWithGemini(ordersData, buttonElement) {
     }
 }
         
+        function getFormattedAnalysisPeriod() {
+            const start = domElements.reportStartDateInput?.value;
+            const end = domElements.reportEndDateInput?.value;
+            if (!start || !end) return 'Período não informado';
+
+            const formatDateInput = (dateStr) => {
+                const [year, month, day] = dateStr.split('-');
+                if (!year || !month || !day) return dateStr;
+                return `${day}/${month}/${year}`;
+            };
+
+            return `${formatDateInput(start)} a ${formatDateInput(end)}`;
+        }
+
+        function getParetoTitle(machineId) {
+            const machineData = lastResults.find(res => String(res.machineId) === String(machineId));
+            const machineLabel = machineData?.description
+                ? `${machineId} - ${machineData.description}`
+                : `${machineId}`;
+            const periodLabel = getFormattedAnalysisPeriod();
+            return `Análise de Pareto para o Ativo: ${machineLabel} | Período: ${periodLabel}`;
+        }
+
         function createParetoChart(data, machineId, sortBy = 'hours') {
             if (paretoChartInstance) {
                 paretoChartInstance.destroy();
@@ -1531,7 +1565,7 @@ async function analyzeWithGemini(ordersData, buttonElement) {
                 }
             });
 
-            domElements.paretoModalTitle.textContent = `Análise de Pareto para o Ativo: ${machineId}`;
+            domElements.paretoModalTitle.textContent = getParetoTitle(machineId);
             domElements.paretoModal.classList.remove('hidden');
             domElements.paretoDetailsContainer.innerHTML = '';
         }
@@ -2592,36 +2626,96 @@ async function getChatbotResponse(question) {
         }
 
 
+        function resolveChartPrintTitle(chartInstance) {
+            const pluginTitle = chartInstance?.options?.plugins?.title?.text;
+            if (typeof pluginTitle === 'string' && pluginTitle.trim()) return pluginTitle;
+            if (Array.isArray(pluginTitle)) return pluginTitle.join(' ').trim();
+
+            if (chartInstance === paretoChartInstance && currentParetoMachineId) {
+                return getParetoTitle(currentParetoMachineId);
+            }
+            if (chartInstance === dashboardParetoInstance) {
+                return 'Pareto de Horas Paradas por Máquina';
+            }
+            if (chartInstance === dailyParetoInstance) {
+                return 'Pareto Diário de Paradas e Ordens';
+            }
+            return 'Gráfico';
+        }
+
+        function applyPrintColors(chartInstance, printColor) {
+            const original = {
+                scales: {},
+                legendLabels: chartInstance.options?.plugins?.legend?.labels?.color,
+                titleColor: chartInstance.options?.plugins?.title?.color,
+                datalabelsColor: chartInstance.options?.plugins?.datalabels?.color,
+                datasetDataLabels: []
+            };
+
+            const scales = chartInstance.options?.scales || {};
+            Object.keys(scales).forEach((scaleKey) => {
+                const scale = scales[scaleKey];
+                original.scales[scaleKey] = {
+                    ticks: scale?.ticks?.color,
+                    title: scale?.title?.color
+                };
+                if (scale?.ticks) scale.ticks.color = printColor;
+                if (scale?.title) scale.title.color = printColor;
+            });
+
+            if (chartInstance.options?.plugins?.legend?.labels) {
+                chartInstance.options.plugins.legend.labels.color = printColor;
+            }
+            if (chartInstance.options?.plugins?.title) {
+                chartInstance.options.plugins.title.color = printColor;
+            }
+            if (chartInstance.options?.plugins?.datalabels) {
+                chartInstance.options.plugins.datalabels.color = printColor;
+            }
+
+            chartInstance.data?.datasets?.forEach((dataset, index) => {
+                original.datasetDataLabels[index] = dataset?.datalabels?.color;
+                if (dataset?.datalabels) dataset.datalabels.color = printColor;
+            });
+
+            return original;
+        }
+
+        function restoreChartColors(chartInstance, original) {
+            const scales = chartInstance.options?.scales || {};
+            Object.keys(scales).forEach((scaleKey) => {
+                const scale = scales[scaleKey];
+                if (scale?.ticks) scale.ticks.color = original.scales?.[scaleKey]?.ticks;
+                if (scale?.title) scale.title.color = original.scales?.[scaleKey]?.title;
+            });
+
+            if (chartInstance.options?.plugins?.legend?.labels) {
+                chartInstance.options.plugins.legend.labels.color = original.legendLabels;
+            }
+            if (chartInstance.options?.plugins?.title) {
+                chartInstance.options.plugins.title.color = original.titleColor;
+            }
+            if (chartInstance.options?.plugins?.datalabels) {
+                chartInstance.options.plugins.datalabels.color = original.datalabelsColor;
+            }
+
+            chartInstance.data?.datasets?.forEach((dataset, index) => {
+                if (dataset?.datalabels) dataset.datalabels.color = original.datasetDataLabels?.[index];
+            });
+        }
+
         function printChart(chartInstance) {
             if (!chartInstance) return;
 
             const canvas = chartInstance.canvas;
             const ctx = canvas.getContext('2d');
-
-            // Store original colors
-            const originalColors = {
-                xTicks: chartInstance.options.scales.x.ticks.color,
-                yTicks: chartInstance.options.scales.y.ticks.color,
-                y1Ticks: chartInstance.options.scales.y1 ? chartInstance.options.scales.y1.ticks.color : undefined,
-                legend: chartInstance.options.plugins.legend.labels.color,
-                title: chartInstance.options.plugins.title.color,
-                yTitle: chartInstance.options.scales.y.title.color,
-                y1Title: chartInstance.options.scales.y1 ? chartInstance.options.scales.y1.title.color : undefined,
-                datalabels: chartInstance.options.plugins.datalabels.color
-            };
-
-            // Set colors for printing
+            const printTitle = resolveChartPrintTitle(chartInstance);
             const printColor = '#000000';
-            chartInstance.options.scales.x.ticks.color = printColor;
-            chartInstance.options.scales.y.ticks.color = printColor;
-            if (chartInstance.options.scales.y1) chartInstance.options.scales.y1.ticks.color = printColor;
-            chartInstance.options.plugins.legend.labels.color = printColor;
-            chartInstance.options.plugins.title.color = printColor;
-            chartInstance.options.scales.y.title.color = printColor;
-            if (chartInstance.options.scales.y1) chartInstance.options.scales.y1.title.color = printColor;
-            chartInstance.options.plugins.datalabels.color = printColor;
+            const originalColors = applyPrintColors(chartInstance, printColor);
+            const originalAnimation = chartInstance.options.animation;
+            chartInstance.options.animation = false;
             
-            chartInstance.update();
+            chartInstance.update('none');
 
             // Draw to a new canvas with a white background
             ctx.save();
@@ -2632,21 +2726,16 @@ async function getChatbotResponse(question) {
             ctx.restore();
 
             // Restore original colors
-            chartInstance.options.scales.x.ticks.color = originalColors.xTicks;
-            chartInstance.options.scales.y.ticks.color = originalColors.yTicks;
-            if (chartInstance.options.scales.y1) chartInstance.options.scales.y1.ticks.color = originalColors.y1Ticks;
-            chartInstance.options.plugins.legend.labels.color = originalColors.legend;
-            chartInstance.options.plugins.title.color = originalColors.title;
-            chartInstance.options.scales.y.title.color = originalColors.yTitle;
-            if (chartInstance.options.scales.y1) chartInstance.options.scales.y1.title.color = originalColors.y1Title;
-            chartInstance.options.plugins.datalabels.color = originalColors.datalabels;
-            chartInstance.update();
+            restoreChartColors(chartInstance, originalColors);
+            chartInstance.options.animation = originalAnimation;
+            chartInstance.update('none');
 
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
                 <html>
                     <head><title>Imprimir Gráfico</title></head>
-                    <body style="text-align: center; margin-top: 20px;">
+                    <body style="text-align: center; margin: 20px; font-family: Arial, sans-serif; color: #000;">
+                        <h1 style="font-size: 20px; margin: 0 0 16px 0;">${printTitle}</h1>
                         <img src="${url}" style="max-width: 100%;">
                         <script>
                             window.onload = () => {
@@ -2858,11 +2947,6 @@ async function getChatbotResponse(question) {
                 switchPage('analyzer-page');
             });
 
-            domElements.navChatbot.addEventListener('click', (e) => {
-                e.preventDefault();
-                switchPage('chatbot-page');
-            });
-
             domElements.chatSendBtn.addEventListener('click', handleChatSubmit);
             domElements.chatInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
@@ -3065,6 +3149,16 @@ async function getChatbotResponse(question) {
 
             domElements.weekSelect.addEventListener('change', handleDateFilterChange);
 
+            const handleManualDateChange = () => {
+                domElements.yearSelect.value = "";
+                domElements.monthSelect.innerHTML = '<option value="">Mês (Todos)</option>';
+                domElements.weekSelect.innerHTML = '<option value="">Semana (Todas)</option>';
+                clampReportDatesToGlobalRange();
+                calculateAndSetTotalHours();
+            };
+            domElements.reportStartDateInput.addEventListener('change', handleManualDateChange);
+            domElements.reportEndDateInput.addEventListener('change', handleManualDateChange);
+
             domElements.clearFiltersButton.addEventListener('click', clearFilters);
 
             domElements.toggleReportFieldsButton.addEventListener('click', () => {
@@ -3255,7 +3349,6 @@ async function getChatbotResponse(question) {
                 printSolutionGuideButton: document.getElementById('print-solution-guide-button'),
                 navDashboard: document.getElementById('nav-dashboard'),
                 navAnalyzer: document.getElementById('nav-analyzer'),
-                navChatbot: document.getElementById('nav-chatbot'),
                 dashboardPage: document.getElementById('dashboard-page'),
                 analyzerPage: document.getElementById('analyzer-page'),
                 chatbotPage: document.getElementById('chatbot-page'),
