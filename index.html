@@ -661,6 +661,17 @@
             return parseFloat(String(value).replace(/\./g, '').replace(',', '.'));
         };
 
+        function getAxisMaxWithHeadroom(values, headroomPercent = 0.35, minPadding = 2) {
+            const numericValues = values
+                .map(v => Number(v))
+                .filter(v => Number.isFinite(v) && v >= 0);
+            if (numericValues.length === 0) return 1;
+            const maxValue = Math.max(...numericValues);
+            if (maxValue === 0) return 1;
+            const paddedValue = maxValue * (1 + headroomPercent);
+            return Math.max(paddedValue, maxValue + minPadding);
+        }
+
         function combineDateAndTime(dateVal, timeVal) {
             if (dateVal == null) return null;
             let year, month, day;
@@ -2347,6 +2358,7 @@ async function getChatbotResponse(question) {
                 cumulativePercentage += (downtime / totalDowntimeSum) * 100;
                 return cumulativePercentage;
             });
+            const yMax = getAxisMaxWithHeadroom(downtimeData);
 
             const isDarkMode = document.documentElement.classList.contains('dark');
             const textColor = isDarkMode ? '#E5E7EB' : '#1F2937';
@@ -2379,11 +2391,18 @@ async function getChatbotResponse(question) {
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
+                    layout: {
+                        padding: {
+                            top: 24
+                        }
+                    },
                     plugins: {
                         datalabels: {
                             display: true,
                             align: 'end',
                             anchor: 'end',
+                            clamp: true,
+                            clip: true,
                             color: textColor,
                             font: {
                                 size: 10,
@@ -2410,6 +2429,7 @@ async function getChatbotResponse(question) {
                             title: { display: true, text: 'Total de Horas Paradas', color: textColor },
                             ticks: { color: textColor },
                             grid: { color: gridColor },
+                            max: yMax
                         },
                         y1: {
                             type: 'linear',
@@ -2485,6 +2505,8 @@ async function getChatbotResponse(question) {
             ];
             const totalDowntimeData = [totalDowntime, 0, 0, 0, ...Array(sortedDates.length).fill(0)];
             const totalOrdersData = [0, 0, totalOrders, 0, ...Array(sortedDates.length).fill(0)];
+            const yMax = getAxisMaxWithHeadroom([...downtimeData, ...orderCountData]);
+            const yTotalMax = getAxisMaxWithHeadroom([totalDowntime, totalOrders]);
             
             const isDarkMode = document.documentElement.classList.contains('dark');
             const textColor = isDarkMode ? '#E5E7EB' : '#1F2937';
@@ -2498,22 +2520,30 @@ async function getChatbotResponse(question) {
                     datasets: [{
                         label: 'Horas Paradas (Diário/Média)',
                         data: downtimeData,
-                        backgroundColor: 'rgba(219, 39, 119, 0.8)', // Pink
+                        backgroundColor: (context) => {
+                            const idx = context.dataIndex;
+                            if (idx === 1) return 'rgba(234, 88, 12, 0.9)'; // Média Horas
+                            return 'rgba(219, 39, 119, 0.8)'; // Diário Horas
+                        },
                         yAxisID: 'y',
                     }, {
                         label: 'Quantidade de Ordens (Diário/Média)',
                         data: orderCountData,
-                        backgroundColor: 'rgba(14, 165, 233, 0.8)', // Sky blue
+                        backgroundColor: (context) => {
+                            const idx = context.dataIndex;
+                            if (idx === 3) return 'rgba(3, 105, 161, 0.9)'; // Média Ordens
+                            return 'rgba(14, 165, 233, 0.8)'; // Diário Ordens
+                        },
                         yAxisID: 'y',
                     }, {
                         label: 'Soma Horas Paradas',
                         data: totalDowntimeData,
-                        backgroundColor: 'rgba(236, 72, 153, 0.8)',
+                        backgroundColor: 'rgba(190, 24, 93, 0.9)', // Soma Horas
                         yAxisID: 'y_total',
                     }, {
                         label: 'Soma Ordens',
                         data: totalOrdersData,
-                        backgroundColor: 'rgba(56, 189, 248, 0.8)',
+                        backgroundColor: 'rgba(2, 132, 199, 0.9)', // Soma Ordens
                         yAxisID: 'y_total',
                     }]
                 },
@@ -2529,6 +2559,11 @@ async function getChatbotResponse(question) {
                     },
                     responsive: true,
                     maintainAspectRatio: true,
+                    layout: {
+                        padding: {
+                            top: 24
+                        }
+                    },
                     plugins: {
                         datalabels: {
                             display: true,
@@ -2537,7 +2572,9 @@ async function getChatbotResponse(question) {
                             formatter: (value) => value > 0 ? parseFloat(value).toFixed(1) : null,
                              rotation: -90,
                              align: 'end',
-                             anchor: 'end'
+                             anchor: 'end',
+                             clamp: true,
+                             clip: true
                         },
                         title: {
                             display: true,
@@ -2557,6 +2594,7 @@ async function getChatbotResponse(question) {
                             title: { display: true, text: 'Valores Diários e Médios', color: textColor },
                             ticks: { color: textColor },
                             grid: { color: gridColor },
+                            max: yMax
                         },
                         y_total: {
                             beginAtZero: true,
@@ -2566,6 +2604,7 @@ async function getChatbotResponse(question) {
                             title: { display: true, text: 'Valores Totais', color: textColor },
                             ticks: { color: textColor },
                             grid: { drawOnChartArea: false },
+                            max: yTotalMax
                         }
                     }
                 }
@@ -2643,6 +2682,15 @@ async function getChatbotResponse(question) {
             return 'Gráfico';
         }
 
+        function chartHasInternalTitle(chartInstance) {
+            const titleCfg = chartInstance?.options?.plugins?.title;
+            if (!titleCfg?.display) return false;
+            const titleText = titleCfg?.text;
+            if (typeof titleText === 'string') return titleText.trim().length > 0;
+            if (Array.isArray(titleText)) return titleText.join(' ').trim().length > 0;
+            return false;
+        }
+
         function applyPrintColors(chartInstance, printColor) {
             const original = {
                 scales: {},
@@ -2710,6 +2758,7 @@ async function getChatbotResponse(question) {
             const canvas = chartInstance.canvas;
             const ctx = canvas.getContext('2d');
             const printTitle = resolveChartPrintTitle(chartInstance);
+            const showExternalTitle = !chartHasInternalTitle(chartInstance);
             const printColor = '#000000';
             const originalColors = applyPrintColors(chartInstance, printColor);
             const originalAnimation = chartInstance.options.animation;
@@ -2735,7 +2784,7 @@ async function getChatbotResponse(question) {
                 <html>
                     <head><title>Imprimir Gráfico</title></head>
                     <body style="text-align: center; margin: 20px; font-family: Arial, sans-serif; color: #000;">
-                        <h1 style="font-size: 20px; margin: 0 0 16px 0;">${printTitle}</h1>
+                        ${showExternalTitle ? `<h1 style="font-size: 20px; margin: 0 0 16px 0;">${printTitle}</h1>` : ''}
                         <img src="${url}" style="max-width: 100%;">
                         <script>
                             window.onload = () => {
