@@ -122,14 +122,15 @@
             color: #818cf8; /* indigo-400 */
         }
         .solution-details {
-            display: none;
             padding: 8px;
-            margin-top: 4px;
             background-color: #f3f4f6; /* gray-100 */
             border-radius: 4px;
         }
         .dark .solution-details {
              background-color: #4b5563; /* gray-600 */
+        }
+        .solution-row {
+            display: none;
         }
     </style>
 </head>
@@ -1712,11 +1713,15 @@ async function analyzeWithGemini(ordersData, buttonElement) {
                             <tr class="border-t border-gray-200 dark:border-gray-700">
                                 <td class="px-1 py-1">${order.serviceOrder}</td>
                                 <td class="px-1 py-1">
-                                    <a class="order-title-toggle" data-target-id="solution-${resIndex}-${orderIndex}">${order.title}</a>
-                                    <div id="solution-${resIndex}-${orderIndex}" class="solution-details">${order.solution || 'Nenhum detalhe informado.'}</div>
+                                    <a class="order-title-toggle" data-target-row-id="solution-row-${resIndex}-${orderIndex}">${order.title}</a>
                                 </td>
                                 <td class="px-1 py-1">${formatDateTime(order.startDateTime)}</td>
                                 <td class="px-1 py-1 text-right">${order.downtime.toFixed(2)}</td>
+                            </tr>
+                            <tr id="solution-row-${resIndex}-${orderIndex}" class="solution-row border-t border-gray-200 dark:border-gray-700">
+                                <td colspan="4" class="px-2 pb-2">
+                                    <div class="solution-details">${order.solution || 'Nenhum detalhe informado.'}</div>
+                                </td>
                             </tr>`).join('')}
                         </tbody></table></div></td></tr>`;
                 });
@@ -1752,11 +1757,11 @@ async function analyzeWithGemini(ordersData, buttonElement) {
             document.querySelectorAll('.order-title-toggle').forEach(title => {
                 title.addEventListener('click', (event) => {
                     event.preventDefault();
-                    const targetId = event.target.dataset.targetId;
-                    const detailDiv = document.getElementById(targetId);
-                    if (detailDiv) {
-                        const isVisible = detailDiv.style.display === 'block';
-                        detailDiv.style.display = isVisible ? 'none' : 'block';
+                    const targetRowId = event.currentTarget.dataset.targetRowId;
+                    const targetRow = document.getElementById(targetRowId);
+                    if (targetRow) {
+                        const isVisible = targetRow.style.display === 'table-row';
+                        targetRow.style.display = isVisible ? 'none' : 'table-row';
                     }
                 });
             });
