@@ -2903,13 +2903,16 @@ async function getChatbotResponse(question) {
                 mtbf: { label: 'MTBF (h)', color: 'rgba(22, 163, 74, 1)', goal: parseFloat(domElements.kpiTrendMtbfGoal.value) }
             };
 
+            const chartValues = data.map(d => Number(d.toFixed(2)));
             const datasets = [{
                 label: kpiInfo[kpi].label,
-                data: data.map(d => d.toFixed(2)),
+                data: chartValues,
                 borderColor: kpiInfo[kpi].color,
-                backgroundColor: kpiInfo[kpi].color.replace('1)', '0.2)'),
-                fill: true,
-                tension: 0.1
+                backgroundColor: kpiInfo[kpi].color.replace('1)', '0.65)'),
+                borderWidth: 1,
+                borderRadius: 6,
+                barPercentage: labels.length === 1 ? 0.4 : 0.7,
+                categoryPercentage: labels.length === 1 ? 0.5 : 0.8
             }];
 
             if (!isNaN(kpiInfo[kpi].goal)) {
@@ -2927,13 +2930,26 @@ async function getChatbotResponse(question) {
                     }
                 });
             }
+
+            const yReferenceValues = [...chartValues];
+            if (!isNaN(kpiInfo[kpi].goal)) {
+                yReferenceValues.push(kpiInfo[kpi].goal);
+            }
+            const yMinValue = Math.min(...yReferenceValues);
+            const yMaxValue = Math.max(...yReferenceValues);
+            const yRange = Math.max(yMaxValue - yMinValue, 1);
+            const yPaddingBottom = yRange * 0.25;
+            const yPaddingTop = yRange * 0.15;
+            const yAxisMin = kpi === 'availability' ? 60 : 0;
+            const yAxisMax = kpi === 'availability' ? 105 : (yMaxValue + yPaddingTop);
             
             const isDarkMode = document.documentElement.classList.contains('dark');
             const textColor = isDarkMode ? '#E5E7EB' : '#1F2937';
             const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
 
             kpiTrendChartInstance = new Chart(domElements.kpiTrendCanvas.getContext('2d'), {
-                type: 'line',
+                type: 'bar',
+                plugins: [ChartDataLabels],
                 data: {
                     labels: labels,
                     datasets: datasets
@@ -2941,12 +2957,35 @@ async function getChatbotResponse(question) {
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
+                    layout: {
+                        padding: {
+                            top: kpi === 'availability' ? 14 : 20
+                        }
+                    },
                     plugins: {
+                        datalabels: {
+                            display: (context) => context.dataset.type !== 'line',
+                            align: () => kpi === 'availability' ? 'end' : 'start',
+                            anchor: 'end',
+                            offset: () => kpi === 'availability' ? 2 : 0,
+                            clamp: true,
+                            clip: true,
+                            color: textColor,
+                            font: {
+                                size: 10,
+                                weight: 'bold'
+                            },
+                            formatter: (value) => {
+                                const numeric = Number(value);
+                                return kpi === 'availability' ? `${numeric.toFixed(2)}%` : numeric.toFixed(2);
+                            }
+                        },
                         legend: {
                             display: true,
                             position: 'top',
                              labels: {
-                                color: textColor
+                                color: textColor,
+                                padding: 16
                             }
                         },
                         tooltip: {
@@ -2968,10 +3007,22 @@ async function getChatbotResponse(question) {
                         }
                     },
                     scales: {
-                        x: { ticks: { color: textColor }, grid: { color: gridColor } },
-                        y: {
-                            beginAtZero: kpi !== 'availability',
+                        x: {
+                            offset: true,
                             ticks: { color: textColor },
+                            grid: { color: gridColor }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            min: yAxisMin,
+                            max: yAxisMax,
+                            ticks: {
+                                color: textColor,
+                                callback: (value) => {
+                                    if (kpi === 'availability' && Number(value) > 100) return '';
+                                    return value;
+                                }
+                            },
                             grid: { color: gridColor },
                             title: {
                                 display: true,
