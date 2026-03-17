@@ -310,6 +310,12 @@
                             <label for="production-line-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Filtrar por Linha de Produção</label>
                             <select id="production-line-filter" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm"></select>
                         </div>
+                        <div class="lg:col-span-2">
+                            <label for="asset-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Filtrar por Bem</label>
+                            <select id="asset-filter" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm">
+                                <option value="">Todos os Bens</option>
+                            </select>
+                        </div>
                         <div>
                             <label for="total-hours" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Total de Horas no Período</label>
                             <input type="number" id="total-hours" class="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-200 rounded-md shadow-sm" readonly placeholder="Calculado automaticamente">
@@ -871,6 +877,8 @@
             domElements.yearSelect.value = "";
             domElements.monthSelect.value = "";
             domElements.weekSelect.value = "";
+            domElements.productionLineFilterSelect.value = "";
+            domElements.assetFilterSelect.value = "";
             populateYearSelector();
             handleDateFilterChange();
         }
@@ -893,6 +901,33 @@
                 filterSelect.appendChild(option);
             });
         }
+
+        function populateAssetFilter() {
+            const filterSelect = domElements.assetFilterSelect;
+            const previousValue = filterSelect.value;
+            filterSelect.innerHTML = '<option value="">Todos os Bens</option>';
+
+            const machineCol = domElements.machineColumnSelect.value;
+            if (!machineCol || !jsonData) return;
+
+            const assets = new Set();
+            jsonData.forEach(row => {
+                if (row[machineCol]) {
+                    assets.add(String(row[machineCol]));
+                }
+            });
+
+            Array.from(assets).sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true })).forEach(asset => {
+                const option = document.createElement('option');
+                option.value = asset;
+                option.textContent = asset;
+                filterSelect.appendChild(option);
+            });
+
+            if (Array.from(assets).includes(previousValue)) {
+                filterSelect.value = previousValue;
+            }
+        }
         
         function updateReportDateRange() {
             const startDateCol = domElements.startDateColumnSelect.value;
@@ -907,6 +942,7 @@
                 domElements.monthSelect.innerHTML = '<option value="">Mês (Todos)</option>';
                 domElements.weekSelect.innerHTML = '<option value="">Semana (Todas)</option>';
                 populateProductionLineFilter();
+                populateAssetFilter();
             };
             if (!startDateCol || !jsonData) {
                 resetAll(); return;
@@ -1006,6 +1042,7 @@
                 costCenterCol: domElements.costCenterColumnSelect.value,
                 solutionDetailsCol: domElements.solutionDetailsColumnSelect.value,
                 selectedProductionLine: domElements.productionLineFilterSelect.value,
+                selectedAsset: domElements.assetFilterSelect.value,
             };
             if (!config.totalHours || config.totalHours <= 0) return showMessage("Por favor, selecione um período válido.");
             if (!config.machineCol || !config.downtimeCol) return showMessage("Por favor, mapeie as colunas de Ativos e Duração.");
@@ -1030,6 +1067,10 @@
 
             if (config.selectedProductionLine && config.costCenterCol) {
                 initialData = initialData.filter(item => item.data[config.costCenterCol] == config.selectedProductionLine);
+            }
+
+            if (config.selectedAsset && config.machineCol) {
+                initialData = initialData.filter(item => String(item.data[config.machineCol]) === String(config.selectedAsset));
             }
             
             const filteredData = initialData.filter(item => {
@@ -3195,6 +3236,7 @@ async function getChatbotResponse(question) {
                         populateSelectors(headers);
                         updateReportDateRange();
                         populateProductionLineFilter();
+                        populateAssetFilter();
                         domElements.analysisSection.classList.remove('hidden');
                         domElements.analyzerNoData.classList.add('hidden');
                         domElements.resultsSection.classList.add('hidden');
@@ -3265,6 +3307,8 @@ async function getChatbotResponse(question) {
             domElements.reportEndDateInput.addEventListener('change', handleManualDateChange);
 
             domElements.clearFiltersButton.addEventListener('click', clearFilters);
+            domElements.machineColumnSelect.addEventListener('change', populateAssetFilter);
+            domElements.costCenterColumnSelect.addEventListener('change', populateProductionLineFilter);
 
             domElements.toggleReportFieldsButton.addEventListener('click', () => {
                 const isHidden = domElements.reportFieldsContent.classList.contains('hidden');
@@ -3375,6 +3419,7 @@ async function getChatbotResponse(question) {
                 populateSelectors(headers);
                 updateReportDateRange();
                 populateProductionLineFilter();
+                populateAssetFilter();
                 
                 domElements.fileNameDisplay.textContent = "Dados carregados via Google Planilhas";
                 domElements.analysisSection.classList.remove('hidden');
@@ -3418,6 +3463,7 @@ async function getChatbotResponse(question) {
                 monthSelect: document.getElementById('month-select'),
                 weekSelect: document.getElementById('week-select'),
                 clearFiltersButton: document.getElementById('clear-filters-button'),
+                assetFilterSelect: document.getElementById('asset-filter'),
                 themeToggleBtn: document.getElementById('theme-toggle'),
                 themeToggleDarkIcon: document.getElementById('theme-toggle-dark-icon'),
                 themeToggleLightIcon: document.getElementById('theme-toggle-light-icon'),
