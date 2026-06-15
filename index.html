@@ -125,12 +125,20 @@
             padding: 8px;
             background-color: #f3f4f6; /* gray-100 */
             border-radius: 4px;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
         }
         .dark .solution-details {
              background-color: #4b5563; /* gray-600 */
         }
         .solution-row {
             display: none;
+        }
+        .machine-orders-table {
+            table-layout: fixed;
+        }
+        .results-main-table {
+            table-layout: fixed;
         }
     </style>
 </head>
@@ -1411,7 +1419,7 @@ async function analyzeWithGemini(ordersData, buttonElement) {
 
     // --- MUDANÇA DE SEGURANÇA AQUI ---
     // Usando seu Cloudflare Worker (A chave está segura lá no servidor)
-    const apiUrl = "https://indicadoresmanutencao.luanfprz.workers.dev";
+    const apiUrl = "https://indicadores.luanfprz.workers.dev";
 
     try {
         console.log("Enviando dados para o Proxy Seguro...");
@@ -1666,14 +1674,23 @@ async function analyzeWithGemini(ordersData, buttonElement) {
                         </tr>
                     </thead>
                     <tbody class="text-gray-700 dark:text-gray-300">
-                        ${relevantOrders.map((order) => {
+                        ${relevantOrders.map((order, orderIndex) => {
                             const originalIndex = machineData.orders.findIndex(o => o.serviceOrder === order.serviceOrder && o.title === order.title && o.downtime === order.downtime);
-                            return `<tr class="border-b border-gray-200 dark:border-gray-700 draggable-row" draggable="true" data-order-id="${originalIndex}">
-                                <td>${order.serviceOrder}</td>
-                                <td>${order.title}</td>
-                                <td>${formatDateTime(order.startDateTime)}</td>
-                                <td class="px-2 py-1 text-right">${order.downtime.toFixed(2)}</td>
-                            </tr>`
+                            return `
+                                <tr class="border-b border-gray-200 dark:border-gray-700 draggable-row" draggable="true" data-order-id="${originalIndex}">
+                                    <td class="px-2 py-1">${order.serviceOrder}</td>
+                                    <td class="px-2 py-1">
+                                        <a class="order-title-toggle pareto-order-title-toggle" data-target-row-id="pareto-solution-row-${originalIndex}-${orderIndex}">${order.title}</a>
+                                    </td>
+                                    <td class="px-2 py-1">${formatDateTime(order.startDateTime)}</td>
+                                    <td class="px-2 py-1 text-right">${order.downtime.toFixed(2)}</td>
+                                </tr>
+                                <tr id="pareto-solution-row-${originalIndex}-${orderIndex}" class="solution-row border-b border-gray-200 dark:border-gray-700">
+                                    <td colspan="4" class="px-2 pb-2">
+                                        <div class="solution-details">${order.solution || 'Nenhum detalhe informado.'}</div>
+                                    </td>
+                                </tr>
+                            `;
                         }).join('')}
                     </tbody>
                 </table>
@@ -1695,17 +1712,30 @@ async function analyzeWithGemini(ordersData, buttonElement) {
             const formatDate = (date) => (!date || isNaN(date)) ? 'N/A' : date.toLocaleDateString('pt-BR', { timeZone: 'UTC', day: '2-digit', month: '2-digit', year: 'numeric' });
             const formatDateTime = (date) => (!date || isNaN(date)) ? 'N/A' : date.toLocaleString('pt-BR', { timeZone: 'UTC', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
             
-            let tableHTML = `<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"><thead class="bg-gray-50 dark:bg-gray-700"><tr>
-                <th class="px-2 py-3"></th>
-                <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable" data-column="machineId">Ativo</th>
-                <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable" data-column="description">Descrição</th>
-                <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable" data-column="totalDowntime">H.Paradas</th>
-                <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable" data-column="totalEvents">Nº Paradas</th>
-                <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable" data-column="availability">Dispon.</th>
-                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tendência (5 sem.)</th>
-                <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable" data-column="mtbf">MTBF (h)</th>
-                <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable" data-column="mttr">MTTR (h)</th>
-                <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable" data-column="lastStopTime">Últ. Parada</th>
+            let tableHTML = `<table class="min-w-full results-main-table divide-y divide-gray-200 dark:divide-gray-700">
+                <colgroup>
+                    <col style="width: 2.5rem;">
+                    <col style="width: 8%;">
+                    <col style="width: 22%;">
+                    <col style="width: 8%;">
+                    <col style="width: 8%;">
+                    <col style="width: 8%;">
+                    <col style="width: 12%;">
+                    <col style="width: 8%;">
+                    <col style="width: 8%;">
+                    <col style="width: 12%;">
+                </colgroup>
+                <thead class="bg-gray-50 dark:bg-gray-700"><tr>
+                <th class="px-2 py-3 whitespace-nowrap"></th>
+                <th class="px-2 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable" data-column="machineId">Ativo</th>
+                <th class="px-2 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable" data-column="description">Descrição</th>
+                <th class="px-2 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable" data-column="totalDowntime">H.Paradas</th>
+                <th class="px-2 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable" data-column="totalEvents">Nº Paradas</th>
+                <th class="px-2 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable" data-column="availability">Dispon.</th>
+                <th class="px-3 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tendência (5 sem.)</th>
+                <th class="px-2 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable" data-column="mtbf">MTBF (h)</th>
+                <th class="px-2 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable" data-column="mttr">MTTR (h)</th>
+                <th class="px-2 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable" data-column="lastStopTime">Últ. Parada</th>
             </tr></thead><tbody id="results-tbody" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">`;
             
             if (results.length === 0) {
@@ -1749,7 +1779,14 @@ async function analyzeWithGemini(ordersData, buttonElement) {
                                 </button>
                             </div>
                         </div>
-                        <table class="min-w-full"><thead><tr class="text-xs text-left text-gray-600 dark:text-gray-400"><th class="py-1 px-2">OS</th><th class="py-1 px-2">Título</th><th class="py-1 px-2">Data/Hora Abertura</th><th class="py-1 px-2">Duração (h)</th></tr></thead><tbody>
+                        <table class="min-w-full machine-orders-table">
+                            <colgroup>
+                                <col style="width: 14%;">
+                                <col style="width: 46%;">
+                                <col style="width: 26%;">
+                                <col style="width: 14%;">
+                            </colgroup>
+                            <thead><tr class="text-xs text-left text-gray-600 dark:text-gray-400"><th class="py-1 px-2 whitespace-nowrap">OS</th><th class="py-1 px-2 whitespace-nowrap">Título</th><th class="py-1 px-2 whitespace-nowrap">Data/Hora Abertura</th><th class="py-1 px-2 whitespace-nowrap">Duração (h)</th></tr></thead><tbody>
                         ${res.orders.map((order, orderIndex) => `
                             <tr class="border-t border-gray-200 dark:border-gray-700">
                                 <td class="px-1 py-1">${order.serviceOrder}</td>
@@ -1931,6 +1968,18 @@ async function analyzeWithGemini(ordersData, buttonElement) {
                 button.addEventListener('click', (e) => {
                     const problemGroup = e.currentTarget.dataset.problemGroup;
                     exportParetoDetailsToExcel(problemGroup);
+                });
+            });
+
+            document.querySelectorAll('#pareto-details-container .pareto-order-title-toggle').forEach(title => {
+                title.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    const targetRowId = event.currentTarget.dataset.targetRowId;
+                    const targetRow = document.getElementById(targetRowId);
+                    if (targetRow) {
+                        const isVisible = targetRow.style.display === 'table-row';
+                        targetRow.style.display = isVisible ? 'none' : 'table-row';
+                    }
                 });
             });
 
@@ -2210,7 +2259,7 @@ async function analyzeWithGemini(ordersData, buttonElement) {
     const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
     
     // --- MUDANÇA DE SEGURANÇA AQUI ---
-    const apiUrl = "https://indicadoresmanutencao.luanfprz.workers.dev";
+    const apiUrl = "https://indicadores.luanfprz.workers.dev";
 
     try {
         const result = await fetchWithBackoff(apiUrl, payload);
@@ -2336,7 +2385,7 @@ async function getChatbotResponse(question) {
 
     // --- MUDANÇA DE SEGURANÇA AQUI ---
     // Sem apiKey exposta, apenas o link do Worker
-    const apiUrl = "https://indicadoresmanutencao.luanfprz.workers.dev";
+    const apiUrl = "https://indicadores.luanfprz.workers.dev";
     
     const payload = { contents: [{ role: "user", parts: [{ text: contextualPrompt }] }] };
 
