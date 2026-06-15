@@ -1419,7 +1419,7 @@ async function analyzeWithGemini(ordersData, buttonElement) {
 
     // --- MUDANÇA DE SEGURANÇA AQUI ---
     // Usando seu Cloudflare Worker (A chave está segura lá no servidor)
-    const apiUrl = "https://indicadores.luanfprz.workers.dev";
+    const apiUrl = "https://indicadoresmanutencao.luanfprz.workers.dev";
 
     try {
         console.log("Enviando dados para o Proxy Seguro...");
@@ -2259,7 +2259,7 @@ async function analyzeWithGemini(ordersData, buttonElement) {
     const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
     
     // --- MUDANÇA DE SEGURANÇA AQUI ---
-    const apiUrl = "https://indicadores.luanfprz.workers.dev";
+    const apiUrl = "https://indicadoresmanutencao.luanfprz.workers.dev";
 
     try {
         const result = await fetchWithBackoff(apiUrl, payload);
@@ -2385,7 +2385,7 @@ async function getChatbotResponse(question) {
 
     // --- MUDANÇA DE SEGURANÇA AQUI ---
     // Sem apiKey exposta, apenas o link do Worker
-    const apiUrl = "https://indicadores.luanfprz.workers.dev";
+    const apiUrl = "https://indicadoresmanutencao.luanfprz.workers.dev";
     
     const payload = { contents: [{ role: "user", parts: [{ text: contextualPrompt }] }] };
 
