@@ -692,12 +692,13 @@
             let year, month, day;
 
             if (dateVal instanceof Date) {
-                year = dateVal.getUTCFullYear();
-                month = dateVal.getUTCMonth() + 1;
-                day = dateVal.getUTCDate();
+                // Treat spreadsheet dates as civil dates, not timezone-aware instants.
+                year = dateVal.getFullYear();
+                month = dateVal.getMonth() + 1;
+                day = dateVal.getDate();
             } else if (typeof dateVal === 'number') {
-                const excelEpoch = new Date(1899, 11, 30);
-                const dateObj = new Date(excelEpoch.getTime() + dateVal * 86400000);
+                const excelEpochUtc = Date.UTC(1899, 11, 30);
+                const dateObj = new Date(excelEpochUtc + dateVal * 86400000);
                 year = dateObj.getUTCFullYear();
                 month = dateObj.getUTCMonth() + 1;
                 day = dateObj.getUTCDate();
@@ -725,7 +726,7 @@
                     const [hours, minutes, seconds] = timeVal.split(':');
                     dateObj.setUTCHours(parseInt(hours || 0), parseInt(minutes || 0), parseInt(seconds || 0), 0);
                 } else if (timeVal instanceof Date) {
-                    dateObj.setUTCHours(timeVal.getUTCHours(), timeVal.getUTCMinutes(), timeVal.getUTCSeconds(), 0);
+                    dateObj.setUTCHours(timeVal.getHours(), timeVal.getMinutes(), timeVal.getSeconds(), 0);
                 }
             }
             return dateObj;
