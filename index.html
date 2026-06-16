@@ -1664,13 +1664,19 @@ async function analyzeWithGemini(ordersData, buttonElement) {
                         </button>
                     </div>
                 </div>
-                <table class="w-full text-sm text-left">
+                <table class="w-full text-sm text-left machine-orders-table">
+                    <colgroup>
+                        <col style="width: 14%;">
+                        <col style="width: 46%;">
+                        <col style="width: 26%;">
+                        <col style="width: 14%;">
+                    </colgroup>
                     <thead class="bg-gray-100 dark:bg-gray-700">
                         <tr>
-                            <th class="px-2 py-1">OS</th>
-                            <th class="px-2 py-1">Título</th>
-                            <th class="px-2 py-1">Data/Hora</th>
-                            <th class="px-2 py-1 text-right">Duração (h)</th>
+                            <th class="px-2 py-1 whitespace-nowrap">OS</th>
+                            <th class="px-2 py-1 whitespace-nowrap">Título</th>
+                            <th class="px-2 py-1 whitespace-nowrap">Data/Hora</th>
+                            <th class="px-2 py-1 text-right whitespace-nowrap">Duração (h)</th>
                         </tr>
                     </thead>
                     <tbody class="text-gray-700 dark:text-gray-300">
