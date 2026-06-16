@@ -3466,7 +3466,7 @@ async function getChatbotResponse(question) {
                 const sheetName = workbook.SheetNames[0]; 
                 const worksheet = workbook.Sheets[sheetName];
                 
-                jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false, dateNF: 'dd/mm/yyyy' });
+                jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: true });
                 console.log("Dados carregados:", jsonData); // Isso ajuda a ver se os dados chegaram no F12
 
                 if (jsonData.length === 0) throw new Error("A planilha está vazia.");
