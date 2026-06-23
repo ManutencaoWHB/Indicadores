@@ -171,6 +171,10 @@
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                     Dashboard
                 </a>
+                <a href="#" id="nav-chatbot" class="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                    Chat IA
+                </a>
             </nav>
         </div>
         <div class="mt-auto p-4 border-t dark:border-gray-700">
@@ -2330,52 +2334,163 @@ async function analyzeWithGemini(ordersData, buttonElement) {
                 };
             }
 
-            let foundMachineId = null;
-            for (const res of lastResults) {
-                if (question.toLowerCase().includes(String(res.machineId).toLowerCase())) {
-                    foundMachineId = res.machineId;
-                    break;
+            const questionLower = question.toLowerCase();
+            const toYYYYMM = (date) => `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
+            const toYYYYMMDDHHMM = (date) => date.toLocaleString('pt-BR', { timeZone: 'UTC', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            const getMonthHours = (monthKey) => {
+                const [year, month] = monthKey.split('-').map(Number);
+                return new Date(Date.UTC(year, month, 0)).getUTCDate() * 24;
+            };
+            const normalizeProblem = (title) => String(title || 'Sem título').trim().toUpperCase();
+            const round2 = (value) => Number(value.toFixed(2));
+            const incrementGroup = (map, key, seed, downtime) => {
+                if (!map.has(key)) map.set(key, { ...seed, totalDowntime: 0, totalEvents: 0 });
+                const item = map.get(key);
+                item.totalDowntime += downtime;
+                item.totalEvents += 1;
+                return item;
+            };
+            const mapToSortedArray = (map, limit = 80) => Array.from(map.values())
+                .sort((a, b) => b.totalDowntime - a.totalDowntime)
+                .slice(0, limit)
+                .map(item => ({
+                    ...item,
+                    totalDowntime: round2(item.totalDowntime),
+                    mttr: item.totalEvents > 0 ? round2(item.totalDowntime / item.totalEvents) : 0
+                }));
+
+            const mentionedMachineIds = lastResults
+                .filter(res => questionLower.includes(String(res.machineId).toLowerCase()))
+                .map(res => String(res.machineId));
+            const monthNames = {
+                janeiro: '01', jan: '01',
+                fevereiro: '02', fev: '02',
+                marco: '03', março: '03', mar: '03',
+                abril: '04', abr: '04',
+                maio: '05', mai: '05',
+                junho: '06', jun: '06',
+                julho: '07', jul: '07',
+                agosto: '08', ago: '08',
+                setembro: '09', set: '09',
+                outubro: '10', out: '10',
+                novembro: '11', nov: '11',
+                dezembro: '12', dez: '12'
+            };
+            const mentionedMonths = new Set();
+            Object.entries(monthNames).forEach(([name, month]) => {
+                const match = questionLower.match(new RegExp(`${name}\\s*(?:/|de\\s*)?(\\d{2,4})?`));
+                if (match) {
+                    const yearText = match[1] || new Date().getUTCFullYear();
+                    const year = String(yearText).length === 2 ? `20${yearText}` : String(yearText);
+                    mentionedMonths.add(`${year}-${month}`);
                 }
+            });
+            const numericMonthMatches = questionLower.matchAll(/\b(0?[1-9]|1[0-2])\s*[\/-]\s*(\d{2,4})\b/g);
+            for (const match of numericMonthMatches) {
+                const year = match[2].length === 2 ? `20${match[2]}` : match[2];
+                mentionedMonths.add(`${year}-${String(match[1]).padStart(2, '0')}`);
             }
 
-            let contextData;
-            let basePrompt = "Você é um especialista em manutenção sênior e um chatbot de análise de dados. Responda à pergunta do usuário de forma concisa e focada, utilizando apenas os dados fornecidos. Se a informação não estiver nos dados, diga que não pode responder com os dados atuais.";
+            const machineMonthMap = new Map();
+            const monthlyProblemMap = new Map();
+            const machineMonthlyProblemMap = new Map();
+            const relevantOrders = [];
+            const totalHours = parseFloat(domElements.totalHoursInput.value) || 0;
 
-            if (foundMachineId) {
-                const machineData = lastResults.find(res => String(res.machineId) === String(foundMachineId));
-                if (machineData) {
-                    const recentOrders = machineData.orders.slice(0, 5).map(order => ({
-                        serviceOrder: order.serviceOrder,
-                        title: order.title,
-                        downtime: order.downtime.toFixed(2),
-                        startDateTime: order.startDateTime.toLocaleString('pt-BR', { timeZone: 'UTC', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-                    }));
-                    contextData = {
-                        machineId: machineData.machineId,
-                        description: machineData.description,
-                        costCenter: machineData.costCenter,
-                        totalDowntime: machineData.totalDowntime.toFixed(2),
-                        totalEvents: machineData.totalEvents,
-                        availability: machineData.availability.toFixed(2),
-                        mtbf: machineData.mtbf.toFixed(2),
-                        mttr: machineData.mttr.toFixed(2),
-                        recentOrders: recentOrders
-                    };
-                    basePrompt += `\n\nContexto (dados do ativo ${foundMachineId}): ${JSON.stringify(contextData)}.`;
-                } else {
-                    contextData = null;
-                    basePrompt += `\n\nNão encontrei dados para o ativo "${foundMachineId}" no período atual ou nos dados processados.`;
-                }
-            } else {
-                const overallKpis = {
-                    totalMachinesAnalyzed: lastResults.length,
-                    overallAvailability: (lastResults.reduce((sum, res) => sum + res.availability, 0) / lastResults.length).toFixed(2),
-                    overallMtbf: (lastResults.reduce((sum, res) => sum + res.mtbf, 0) / lastResults.length).toFixed(2),
-                    overallMttr: (lastResults.reduce((sum, res) => sum + res.mttr, 0) / lastResults.length).toFixed(2),
-                    top5DowntimeMachines: lastResults.sort((a,b) => b.totalDowntime - a.totalDowntime).slice(0,5).map(m => `${m.machineId} (${m.totalDowntime.toFixed(2)}h)`).join(', ')
-                };
-                basePrompt += `\n\nContexto (dados gerais da análise): ${JSON.stringify(overallKpis)}.`;
-            }
+            lastResults.forEach(machine => {
+                machine.orders.forEach(order => {
+                    const monthKey = toYYYYMM(order.startDateTime);
+                    const problem = normalizeProblem(order.title);
+                    const downtime = Number(order.downtime) || 0;
+
+                    const mm = incrementGroup(machineMonthMap, `${monthKey}|${machine.machineId}`, {
+                        month: monthKey,
+                        machineId: machine.machineId,
+                        description: machine.description,
+                        costCenter: machine.costCenter
+                    }, downtime);
+                    mm.totalPeriodHours = getMonthHours(monthKey);
+                    mm.availability = mm.totalPeriodHours > 0 ? round2(Math.max(0, mm.totalPeriodHours - mm.totalDowntime) / mm.totalPeriodHours * 100) : null;
+
+                    incrementGroup(monthlyProblemMap, `${monthKey}|${problem}`, {
+                        month: monthKey,
+                        problem,
+                        machines: new Set()
+                    }, downtime).machines.add(machine.machineId);
+
+                    incrementGroup(machineMonthlyProblemMap, `${monthKey}|${machine.machineId}|${problem}`, {
+                        month: monthKey,
+                        machineId: machine.machineId,
+                        problem
+                    }, downtime);
+
+                    const matchesMachine = mentionedMachineIds.length === 0 || mentionedMachineIds.includes(String(machine.machineId));
+                    const matchesMonth = mentionedMonths.size === 0 || mentionedMonths.has(monthKey);
+                    if (matchesMachine && matchesMonth) {
+                        relevantOrders.push({
+                            machineId: machine.machineId,
+                            serviceOrder: order.serviceOrder,
+                            dateTime: toYYYYMMDDHHMM(order.startDateTime),
+                            month: monthKey,
+                            problem: order.title,
+                            downtime: round2(downtime)
+                        });
+                    }
+                });
+            });
+
+            const monthlyProblems = mapToSortedArray(monthlyProblemMap, 100).map(item => ({
+                ...item,
+                machines: Array.from(item.machines || []).slice(0, 12)
+            }));
+            const machineMonthlyProblems = mapToSortedArray(machineMonthlyProblemMap, 160);
+            const machineMonthlyTotals = mapToSortedArray(machineMonthMap, 160);
+            const machineTotals = [...lastResults]
+                .sort((a, b) => b.totalDowntime - a.totalDowntime)
+                .map(machine => ({
+                    machineId: machine.machineId,
+                    description: machine.description,
+                    costCenter: machine.costCenter,
+                    totalDowntime: round2(machine.totalDowntime),
+                    totalEvents: machine.totalEvents,
+                    availability: round2(machine.availability),
+                    mtbf: round2(machine.mtbf),
+                    mttr: round2(machine.mttr)
+                }));
+
+            const contextData = {
+                dataScope: 'Dados atualmente carregados/processados no relatório.',
+                reportPeriod: {
+                    start: domElements.reportStartDateInput.value,
+                    end: domElements.reportEndDateInput.value,
+                    totalHours
+                },
+                totals: {
+                    machines: lastResults.length,
+                    downtime: round2(lastResults.reduce((sum, machine) => sum + machine.totalDowntime, 0)),
+                    events: lastResults.reduce((sum, machine) => sum + machine.totalEvents, 0)
+                },
+                mentionedFilters: {
+                    machines: mentionedMachineIds,
+                    months: Array.from(mentionedMonths)
+                },
+                machineTotals,
+                machineMonthlyTotals,
+                monthlyProblems,
+                machineMonthlyProblems,
+                relevantOrders: relevantOrders
+                    .sort((a, b) => b.downtime - a.downtime)
+                    .slice(0, 250)
+            };
+
+            const basePrompt = `Você é uma IA especialista em manutenção industrial e análise de indicadores.
+Responda em português, com objetividade e cálculos claros.
+Use somente os dados JSON fornecidos; se a pergunta exigir dados fora do período/processamento atual, diga isso claramente.
+Você pode calcular disponibilidade, MTBF, MTTR, soma de horas paradas, quantidade de paradas, médias, rankings e agrupamentos por máquina, mês, linha/costCenter e problema.
+Para perguntas por mês, use o campo month no formato YYYY-MM.
+Para disponibilidade mensal por máquina, use machineMonthlyTotals.availability quando existir; se precisar explicar, a fórmula é (horas do período - horas paradas) / horas do período * 100.
+
+Contexto analítico: ${JSON.stringify(contextData)}.`;
 
             return {
                 prompt: `${basePrompt}\n\nPergunta do usuário: "${question}"`,
@@ -3149,6 +3264,11 @@ async function getChatbotResponse(question) {
                 switchPage('analyzer-page');
             });
 
+            domElements.navChatbot.addEventListener('click', (e) => {
+                e.preventDefault();
+                switchPage('chatbot-page');
+            });
+
             domElements.chatSendBtn.addEventListener('click', handleChatSubmit);
             domElements.chatInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
@@ -3556,6 +3676,7 @@ async function getChatbotResponse(question) {
                 printSolutionGuideButton: document.getElementById('print-solution-guide-button'),
                 navDashboard: document.getElementById('nav-dashboard'),
                 navAnalyzer: document.getElementById('nav-analyzer'),
+                navChatbot: document.getElementById('nav-chatbot'),
                 dashboardPage: document.getElementById('dashboard-page'),
                 analyzerPage: document.getElementById('analyzer-page'),
                 chatbotPage: document.getElementById('chatbot-page'),
