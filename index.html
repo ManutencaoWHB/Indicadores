@@ -611,6 +611,7 @@
         let domElements = {};
         let jsonData = null;
         let lastResults = [];
+        let chatHistory = [];
         let sortState = { column: 'totalDowntime', direction: 'desc' };
         let globalMinDate = null;
         let globalMaxDate = null;
@@ -2326,7 +2327,7 @@ async function analyzeWithGemini(ordersData, buttonElement) {
             }
         }
 
-        async function generateContextualPrompt(question) {
+        async function generateContextualPrompt(question, conversationHistory = []) {
             if (!lastResults || lastResults.length === 0) {
                 return {
                     prompt: `O usuário perguntou: "${question}". Não há dados de manutenção carregados. Por favor, instrua o usuário a carregar uma planilha na aba 'Analisador' e executar a análise primeiro.`,
@@ -2335,6 +2336,11 @@ async function analyzeWithGemini(ordersData, buttonElement) {
             }
 
             const questionLower = question.toLowerCase();
+            const conversationText = conversationHistory
+                .map(message => `${message.role}: ${message.text}`)
+                .join('\n')
+                .toLowerCase();
+            const combinedQuestionContext = `${conversationText}\nuser: ${questionLower}`;
             const toYYYYMM = (date) => `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
             const toYYYYMMDDHHMM = (date) => date.toLocaleString('pt-BR', { timeZone: 'UTC', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
             const getMonthHours = (monthKey) => {
@@ -2360,8 +2366,12 @@ async function analyzeWithGemini(ordersData, buttonElement) {
                 }));
 
             const mentionedMachineIds = lastResults
-                .filter(res => questionLower.includes(String(res.machineId).toLowerCase()))
+                .filter(res => combinedQuestionContext.includes(String(res.machineId).toLowerCase()))
                 .map(res => String(res.machineId));
+            const mentionedServiceOrders = new Set();
+            for (const match of combinedQuestionContext.matchAll(/\b\d{4,8}\b/g)) {
+                mentionedServiceOrders.add(match[0]);
+            }
             const monthNames = {
                 janeiro: '01', jan: '01',
                 fevereiro: '02', fev: '02',
@@ -2378,14 +2388,14 @@ async function analyzeWithGemini(ordersData, buttonElement) {
             };
             const mentionedMonths = new Set();
             Object.entries(monthNames).forEach(([name, month]) => {
-                const match = questionLower.match(new RegExp(`${name}\\s*(?:/|de\\s*)?(\\d{2,4})?`));
+                const match = combinedQuestionContext.match(new RegExp(`${name}\\s*(?:/|de\\s*)?(\\d{2,4})?`));
                 if (match) {
                     const yearText = match[1] || new Date().getUTCFullYear();
                     const year = String(yearText).length === 2 ? `20${yearText}` : String(yearText);
                     mentionedMonths.add(`${year}-${month}`);
                 }
             });
-            const numericMonthMatches = questionLower.matchAll(/\b(0?[1-9]|1[0-2])\s*[\/-]\s*(\d{2,4})\b/g);
+            const numericMonthMatches = combinedQuestionContext.matchAll(/\b(0?[1-9]|1[0-2])\s*[\/-]\s*(\d{2,4})\b/g);
             for (const match of numericMonthMatches) {
                 const year = match[2].length === 2 ? `20${match[2]}` : match[2];
                 mentionedMonths.add(`${year}-${String(match[1]).padStart(2, '0')}`);
@@ -2426,13 +2436,15 @@ async function analyzeWithGemini(ordersData, buttonElement) {
 
                     const matchesMachine = mentionedMachineIds.length === 0 || mentionedMachineIds.includes(String(machine.machineId));
                     const matchesMonth = mentionedMonths.size === 0 || mentionedMonths.has(monthKey);
-                    if (matchesMachine && matchesMonth) {
+                    const matchesServiceOrder = mentionedServiceOrders.size === 0 || mentionedServiceOrders.has(String(order.serviceOrder));
+                    if ((matchesMachine && matchesMonth) || matchesServiceOrder) {
                         relevantOrders.push({
                             machineId: machine.machineId,
                             serviceOrder: order.serviceOrder,
                             dateTime: toYYYYMMDDHHMM(order.startDateTime),
                             month: monthKey,
                             problem: order.title,
+                            solution: order.solution || 'Nenhum detalhe informado.',
                             downtime: round2(downtime)
                         });
                     }
@@ -2472,8 +2484,10 @@ async function analyzeWithGemini(ordersData, buttonElement) {
                 },
                 mentionedFilters: {
                     machines: mentionedMachineIds,
-                    months: Array.from(mentionedMonths)
+                    months: Array.from(mentionedMonths),
+                    serviceOrders: Array.from(mentionedServiceOrders)
                 },
+                conversationHistory: conversationHistory.slice(-6),
                 machineTotals,
                 machineMonthlyTotals,
                 monthlyProblems,
@@ -2486,8 +2500,10 @@ async function analyzeWithGemini(ordersData, buttonElement) {
             const basePrompt = `Você é uma IA especialista em manutenção industrial e análise de indicadores.
 Responda em português, com objetividade e cálculos claros.
 Use somente os dados JSON fornecidos; se a pergunta exigir dados fora do período/processamento atual, diga isso claramente.
+Considere o histórico da conversa para resolver referências como "essa ordem", "ela", "essa máquina", "esse problema" ou "no mesmo mês".
 Você pode calcular disponibilidade, MTBF, MTTR, soma de horas paradas, quantidade de paradas, médias, rankings e agrupamentos por máquina, mês, linha/costCenter e problema.
 Para perguntas por mês, use o campo month no formato YYYY-MM.
+Para perguntas sobre uma ordem específica, use relevantOrders.serviceOrder, dateTime, problem, solution e downtime.
 Para disponibilidade mensal por máquina, use machineMonthlyTotals.availability quando existir; se precisar explicar, a fórmula é (horas do período - horas paradas) / horas do período * 100.
 
 Contexto analítico: ${JSON.stringify(contextData)}.`;
@@ -2498,8 +2514,8 @@ Contexto analítico: ${JSON.stringify(contextData)}.`;
             };
         }
 
-async function getChatbotResponse(question) {
-    const { prompt: contextualPrompt, hasData } = await generateContextualPrompt(question);
+async function getChatbotResponse(question, conversationHistory = []) {
+    const { prompt: contextualPrompt, hasData } = await generateContextualPrompt(question, conversationHistory);
 
     if (!hasData) {
         return contextualPrompt;
@@ -2543,7 +2559,11 @@ async function getChatbotResponse(question) {
             domElements.chatContainer.appendChild(thinkingDiv);
             domElements.chatContainer.scrollTop = domElements.chatContainer.scrollHeight;
 
-            const botResponse = await getChatbotResponse(userInput);
+            const historySnapshot = chatHistory.slice(-6);
+            const botResponse = await getChatbotResponse(userInput, historySnapshot);
+            chatHistory.push({ role: 'user', text: userInput });
+            chatHistory.push({ role: 'assistant', text: botResponse });
+            chatHistory = chatHistory.slice(-12);
             
             domElements.chatContainer.removeChild(thinkingDiv);
             const botMessageDiv = document.createElement('div');
