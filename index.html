@@ -154,14 +154,44 @@
         .top-stops-chart-wrap {
             min-height: 520px;
         }
+        /* Temporary styles applied when resizing chart for printing */
+        body.printing-top-stops .top-stops-report-card {
+            width: 287mm !important;
+            height: auto !important;
+            min-height: auto !important;
+            padding: 3mm !important;
+            margin: 0 !important; /* Clear sibling margins */
+        }
+        body.printing-top-stops .top-stops-chart-wrap {
+            height: 150mm !important;
+            min-height: 150mm !important;
+            margin-top: 2mm !important;
+        }
         @media print {
             @page {
                 size: A4 landscape;
-                margin: 8mm;
+                margin: 5mm;
+            }
+            html, body {
+                width: 297mm;
+                height: 210mm;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #ffffff !important;
+                overflow: hidden;
             }
             body * {
                 visibility: hidden;
             }
+            
+            /* Remove main UI elements completely from print layout flow */
+            #sidebar, #sidebar-overlay, 
+            #top-stops-page header, 
+            #top-stops-page .no-print, 
+            #top-stops-page #top-stops-no-data {
+                display: none !important;
+            }
+            
             .printable-top-stops, .printable-top-stops * {
                 visibility: visible;
             }
@@ -169,7 +199,9 @@
                 position: absolute;
                 left: 0;
                 top: 0;
-                width: 100%;
+                width: 287mm !important;
+                max-width: none !important;
+                margin: 0 !important;
             }
             .top-stops-print-hidden {
                 display: none !important;
@@ -180,7 +212,28 @@
             .top-stops-report-card {
                 border: 0;
                 box-shadow: none;
-                width: 100%;
+                width: 287mm !important;
+                height: auto;
+                min-height: auto;
+                padding: 3mm !important;
+                margin: 0 !important; /* Clear sibling margins */
+                page-break-inside: avoid;
+            }
+            .top-stops-logo {
+                width: 72px;
+            }
+            .top-stops-report-card h2 {
+                font-size: 20pt !important;
+                line-height: 1.1 !important;
+            }
+            .top-stops-report-card p {
+                font-size: 9pt !important;
+                line-height: 1.2 !important;
+            }
+            .top-stops-chart-wrap {
+                height: 150mm !important;
+                min-height: 150mm !important;
+                margin-top: 2mm !important;
             }
             .top-stops-print-both #top-stops-fab1-card {
                 page-break-after: always;
@@ -3435,23 +3488,32 @@ async function getChatbotResponse(question, conversationHistory = []) {
                 const machineId = row[config.machineCol] || 'N/D';
                 const description = row[config.assetNameCol] || 'Sem descrição';
                 const title = row[config.orderTitleCol] || 'Sem título';
-                const key = `${machineId}|${description}|${title}`;
+                const serviceOrder = String(row[config.serviceOrderCol] || 'N/A');
+                const key = `${machineId}|${description}`;
                 if (!groups.has(key)) {
-                    groups.set(key, { machineId, description, title, totalDowntime: 0, orderCount: 0, serviceOrders: new Set() });
+                    groups.set(key, { machineId, description, totalDowntime: 0, orders: new Map() });
                 }
                 const item = groups.get(key);
                 item.totalDowntime += overlapHours;
-                item.serviceOrders.add(String(row[config.serviceOrderCol] || 'N/A'));
-                item.orderCount = item.serviceOrders.size;
+                if (!item.orders.has(serviceOrder)) {
+                    item.orders.set(serviceOrder, { serviceOrder, title, totalDowntime: 0 });
+                }
+                item.orders.get(serviceOrder).totalDowntime += overlapHours;
             });
 
             return Array.from(groups.values())
                 .sort((a, b) => b.totalDowntime - a.totalDowntime)
                 .slice(0, 10)
                 .map(item => ({
-                    ...item,
                     totalDowntime: Number(item.totalDowntime.toFixed(2)),
-                    serviceOrders: Array.from(item.serviceOrders)
+                    machineId: item.machineId,
+                    description: item.description,
+                    orders: Array.from(item.orders.values())
+                        .sort((a, b) => b.totalDowntime - a.totalDowntime)
+                        .map(order => ({
+                            ...order,
+                            totalDowntime: Number(order.totalDowntime.toFixed(2))
+                        }))
                 }));
         }
 
@@ -3463,49 +3525,64 @@ async function getChatbotResponse(question, conversationHistory = []) {
             }
             periodElement.textContent = periodText;
 
-            const labels = data.length > 0 ? data.map(item => `${item.machineId} - ${item.description}\n${item.title}`) : ['Sem paradas no período'];
-            const downtimeData = data.length > 0 ? data.map(item => item.totalDowntime) : [0];
-            const orderCountData = data.length > 0 ? data.map(item => item.orderCount) : [0];
-            const yMax = getAxisMaxWithHeadroom(downtimeData, 0.25, 1);
+            const labels = data.length > 0 ? data.map(item => `${item.machineId} - ${item.description}`) : ['Sem paradas no período'];
+            const totalDowntimeData = data.length > 0 ? data.map(item => item.totalDowntime) : [0];
+            const yMax = getAxisMaxWithHeadroom(totalDowntimeData, 0.25, 1);
+            const maxOrderCount = data.length > 0 ? Math.max(...data.map(item => item.orders.length)) : 1;
+            const segmentColors = ['#ef1010', '#f97316', '#facc15', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#64748b', '#111827', '#84cc16', '#14b8a6'];
+            const datasets = Array.from({ length: maxOrderCount }, (_, orderIndex) => ({
+                label: `OS ${orderIndex + 1}`,
+                orderIndex,
+                data: data.length > 0 ? data.map(item => item.orders[orderIndex]?.totalDowntime || 0) : [0],
+                backgroundColor: segmentColors[orderIndex % segmentColors.length],
+                borderColor: '#ffffff',
+                borderWidth: 1,
+                barPercentage: 0.72,
+                categoryPercentage: 0.82,
+                datalabels: {
+                    labels: {
+                        order: {
+                            anchor: 'start',
+                            align: 'right',
+                            offset: 6,
+                            color: '#ffffff',
+                            textStrokeColor: '#111827',
+                            textStrokeWidth: 2,
+                            font: { weight: 'bold', size: 12 },
+                            formatter: (value, context) => {
+                                const item = data[context.dataIndex];
+                                const order = item?.orders[context.dataset.orderIndex];
+                                if (!item || !order || value <= 0 || context.dataset.orderIndex !== 0) return '';
+                                return `${item.orders.length} OS`;
+                            }
+                        },
+                        total: {
+                            anchor: 'end',
+                            align: 'right',
+                            color: '#111827',
+                            font: { weight: 'bold', size: 13 },
+                            formatter: (value, context) => {
+                                const item = data[context.dataIndex];
+                                if (!item || context.dataset.orderIndex !== item.orders.length - 1) return '';
+                                return item.totalDowntime.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }));
 
             topStopsChartInstances[factoryKey] = new Chart(canvas.getContext('2d'), {
                 type: 'bar',
                 plugins: [ChartDataLabels],
                 data: {
                     labels,
-                    datasets: [{
-                        label: 'Horas paradas',
-                        data: downtimeData,
-                        backgroundColor: '#ef1010',
-                        borderColor: '#c40000',
-                        borderWidth: 1,
-                        barPercentage: 0.72,
-                        categoryPercentage: 0.82,
-                        datalabels: {
-                            labels: {
-                                hours: {
-                                    anchor: 'end',
-                                    align: 'right',
-                                    color: '#111827',
-                                    font: { weight: 'bold', size: 13 },
-                                    formatter: value => Number(value).toFixed(2)
-                                },
-                                orders: {
-                                    anchor: 'center',
-                                    align: 'center',
-                                    color: '#111827',
-                                    font: { weight: 'bold', size: 12 },
-                                    formatter: (value, context) => `${orderCountData[context.dataIndex]} OS`
-                                }
-                            }
-                        }
-                    }]
+                    datasets
                 },
                 options: {
                     indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
-                    layout: { padding: { right: 48 } },
+                    layout: { padding: { right: 56 } },
                     plugins: {
                         title: {
                             display: false
@@ -3515,12 +3592,15 @@ async function getChatbotResponse(question, conversationHistory = []) {
                         },
                         tooltip: {
                             callbacks: {
-                                label: context => context.dataset.label === 'Horas paradas'
-                                    ? `Horas paradas: ${Number(context.raw).toFixed(2)}h`
-                                    : `Quantidade de ordens: ${context.raw}`,
+                                label: context => {
+                                    const item = data[context.dataIndex];
+                                    const order = item?.orders[context.dataset.orderIndex];
+                                    if (!order || context.raw <= 0) return '';
+                                    return `OS ${order.serviceOrder}: ${Number(context.raw).toFixed(2)}h - ${order.title}`;
+                                },
                                 afterBody: context => {
                                     const item = data[context[0].dataIndex];
-                                    return item ? [`OS: ${item.serviceOrders.join(', ')}`] : [];
+                                    return item ? [`Total da máquina: ${item.totalDowntime.toFixed(2)}h`, `Quantidade de OS: ${item.orders.length}`] : [];
                                 }
                             }
                         }
@@ -3529,11 +3609,13 @@ async function getChatbotResponse(question, conversationHistory = []) {
                         x: {
                             beginAtZero: true,
                             max: yMax,
+                            stacked: true,
                             ticks: { color: '#111827', font: { weight: 'bold' } },
                             grid: { color: '#e5e7eb' },
                             title: { display: true, text: 'Horas paradas no período', color: '#111827', font: { weight: 'bold' } }
                         },
                         y: {
+                            stacked: true,
                             ticks: {
                                 color: '#4b5563',
                                 font: { weight: 'bold', size: 11 },
@@ -3561,19 +3643,32 @@ async function getChatbotResponse(question, conversationHistory = []) {
             renderTopStopsChart('fab3', getTopStopsData('fab3', start, end), periodText);
         }
 
+        function resizeTopStopsCharts() {
+            Object.values(topStopsChartInstances).forEach(chart => {
+                if (chart) chart.resize();
+            });
+        }
+
         function printTopStops(mode) {
             const cards = [domElements.topStopsFab1Card, domElements.topStopsFab3Card];
+            document.body.classList.add('printing-top-stops');
             domElements.topStopsReportContent.classList.add('printable-top-stops');
             domElements.topStopsReportContent.classList.toggle('top-stops-print-both', mode === 'both');
             cards.forEach(card => card.classList.remove('top-stops-print-hidden'));
             if (mode === 'fab1') domElements.topStopsFab3Card.classList.add('top-stops-print-hidden');
             else if (mode === 'fab3') domElements.topStopsFab1Card.classList.add('top-stops-print-hidden');
-            window.print();
+
             setTimeout(() => {
-                domElements.topStopsReportContent.classList.remove('printable-top-stops');
-                domElements.topStopsReportContent.classList.remove('top-stops-print-both');
-                cards.forEach(card => card.classList.remove('top-stops-print-hidden'));
-            }, 500);
+                resizeTopStopsCharts();
+                window.print();
+                setTimeout(() => {
+                    document.body.classList.remove('printing-top-stops');
+                    domElements.topStopsReportContent.classList.remove('printable-top-stops');
+                    domElements.topStopsReportContent.classList.remove('top-stops-print-both');
+                    cards.forEach(card => card.classList.remove('top-stops-print-hidden'));
+                    resizeTopStopsCharts();
+                }, 500);
+            }, 100);
         }
 
         function initializeEventListeners() {
