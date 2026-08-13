@@ -155,6 +155,17 @@
             min-height: 520px;
         }
         /* Temporary styles applied when resizing chart for printing */
+        body.printing-top-stops body > div.flex, 
+        body.printing-top-stops main, 
+        body.printing-top-stops #top-stops-page, 
+        body.printing-top-stops #top-stops-page .container {
+            margin: 0 !important;
+            padding: 0 !important;
+            height: auto !important;
+            min-height: auto !important;
+            max-width: none !important;
+            overflow: visible !important;
+        }
         body.printing-top-stops .top-stops-report-card {
             width: 287mm !important;
             height: auto !important;
@@ -190,6 +201,25 @@
             #top-stops-page .no-print, 
             #top-stops-page #top-stops-no-data {
                 display: none !important;
+            }
+            
+            /* Reset parent containers layout, padding, and height to prevent overflow spilling */
+            body > div.flex {
+                display: block !important;
+                height: auto !important;
+                min-height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            main, 
+            #top-stops-page, 
+            #top-stops-page .container {
+                margin: 0 !important;
+                padding: 0 !important;
+                height: auto !important;
+                min-height: auto !important;
+                max-width: none !important;
+                overflow: visible !important;
             }
             
             .printable-top-stops, .printable-top-stops * {
@@ -3525,7 +3555,42 @@ async function getChatbotResponse(question, conversationHistory = []) {
             }
             periodElement.textContent = periodText;
 
-            const labels = data.length > 0 ? data.map(item => `${item.machineId} - ${item.description}`) : ['Sem paradas no período'];
+            function wrapText(text, maxChars, maxLines) {
+                const words = text.split(' ');
+                const lines = [];
+                let currentLine = '';
+                for (let i = 0; i < words.length; i++) {
+                    const word = words[i];
+                    if ((currentLine + word).length > maxChars) {
+                        if (currentLine) lines.push(currentLine.trim());
+                        currentLine = word + ' ';
+                    } else {
+                        currentLine += word + ' ';
+                    }
+                    if (lines.length === maxLines - 1) {
+                        const remaining = words.slice(i + 1).join(' '); // Fixed duplication bug
+                        let lastLine = (currentLine + remaining).trim();
+                        if (lastLine.length > maxChars) {
+                            lastLine = lastLine.substring(0, maxChars - 3) + '...';
+                        }
+                        lines.push(lastLine);
+                        currentLine = '';
+                        break;
+                    }
+                }
+                if (currentLine) lines.push(currentLine.trim());
+                return lines.slice(0, maxLines);
+            }
+
+            const labels = data.length > 0 ? data.map(item => {
+                const uniqueTitles = Array.from(new Set(item.orders.map(o => o.title).filter(Boolean)));
+                const titleStr = uniqueTitles.length > 0 ? uniqueTitles.join(' | ') : 'Sem título';
+                const titleLines = wrapText(titleStr, 48, 2); // Set maxChars to 48
+                return [
+                    `${item.machineId} - ${item.description}`,
+                    ...titleLines
+                ].join('\n');
+            }) : ['Sem paradas no período'];
             const totalDowntimeData = data.length > 0 ? data.map(item => item.totalDowntime) : [0];
             const yMax = getAxisMaxWithHeadroom(totalDowntimeData, 0.25, 1);
             const maxOrderCount = data.length > 0 ? Math.max(...data.map(item => item.orders.length)) : 1;
@@ -3559,6 +3624,17 @@ async function getChatbotResponse(question, conversationHistory = []) {
                         total: {
                             anchor: 'end',
                             align: 'right',
+                            offset: (context) => {
+                                const item = data[context.dataIndex];
+                                if (!item) return 4;
+                                const chartWidth = context.chart.chartArea ? (context.chart.chartArea.right - context.chart.chartArea.left) : 500;
+                                const barWidth = (item.totalDowntime / yMax) * chartWidth;
+                                const minStart = 45;
+                                if (barWidth < minStart) {
+                                    return minStart - barWidth;
+                                }
+                                return 4;
+                            },
                             color: '#111827',
                             font: { weight: 'bold', size: 13 },
                             formatter: (value, context) => {
@@ -3616,6 +3692,9 @@ async function getChatbotResponse(question, conversationHistory = []) {
                         },
                         y: {
                             stacked: true,
+                            afterFit: function(axis) {
+                                axis.width = 380; // Force a fixed 380px width for y-axis ticks area
+                            },
                             ticks: {
                                 color: '#4b5563',
                                 font: { weight: 'bold', size: 11 },
